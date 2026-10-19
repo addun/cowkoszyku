@@ -7,7 +7,7 @@ services:
       - "${API_PORT:-8080}:${API_PORT:-8080}"
     env_file: .env
     volumes:
-      - bulkly-data:/data
+      - cowkoszyku-data:/data
 
   web:
     build:
@@ -20,4 +20,5 @@ services:
       - api
 
 volumes:
-  bulkly-data:
+  cowkoszyku-data:
+    name: cowkoszyku_bulkly-data

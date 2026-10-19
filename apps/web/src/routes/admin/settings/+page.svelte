@@ -18,7 +18,7 @@
   const defaults = $derived(obj(view.defaults));
 </script>
 
-<svelte:head><title>Settings · Bulkly</title></svelte:head>
+<svelte:head><title>Settings · cowkoszyku</title></svelte:head>
 
 <Notice message={form?.message} />
 <h1 class="text-2xl font-semibold tracking-tight">Settings</h1>
@@ -69,7 +69,7 @@
   <Card.Content>
     <pre class="bg-muted overflow-x-auto rounded-lg p-3 text-sm">{`{
   "mcpServers": {
-    "bulkly": {
+    "cowkoszyku": {
       "url": "https://YOUR_HOST/mcp"
     }
   }

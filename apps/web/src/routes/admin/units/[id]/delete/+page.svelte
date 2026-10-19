@@ -3,7 +3,7 @@
   import Confirm from '$lib/admin/Confirm.svelte';
   let { data, form } = $props();
 </script>
-<svelte:head><title>Delete unit · Bulkly</title></svelte:head>
+<svelte:head><title>Delete unit · cowkoszyku</title></svelte:head>
 
 
 <Notice message={form?.message} />

@@ -4,7 +4,7 @@
   let { data, form } = $props();
   const back = data.product ? `/admin/aliases?product=${data.product}` : '/admin/aliases';
 </script>
-<svelte:head><title>Delete alias · Bulkly</title></svelte:head>
+<svelte:head><title>Delete alias · cowkoszyku</title></svelte:head>
 
 <Notice message={form?.message} />
 <Confirm

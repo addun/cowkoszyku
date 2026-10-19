@@ -11,7 +11,7 @@
   const importers = $derived(arr(view.importers));
 </script>
 
-<svelte:head><title>Imports · Bulkly</title></svelte:head>
+<svelte:head><title>Imports · cowkoszyku</title></svelte:head>
 <div class="flex flex-col gap-2">
   <div class="flex flex-wrap items-center justify-between gap-3">
     <h1 class="text-2xl font-semibold tracking-tight">Imports</h1>

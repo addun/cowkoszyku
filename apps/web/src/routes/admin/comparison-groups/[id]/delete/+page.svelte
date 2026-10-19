@@ -3,7 +3,7 @@
   import Confirm from '$lib/admin/Confirm.svelte';
   let { data, form } = $props();
 </script>
-<svelte:head><title>Delete comparison group · Bulkly</title></svelte:head>
+<svelte:head><title>Delete comparison group · cowkoszyku</title></svelte:head>
 
 <Notice message={form?.message} />
 <Confirm

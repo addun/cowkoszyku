@@ -12,14 +12,14 @@ export default [
       },
     },
     plugins: {
-      bulkly: {
+      cowkoszyku: {
         rules: {
           'no-feature-deps': noFeatureDeps,
         },
       },
     },
     rules: {
-      'bulkly/no-feature-deps': 'error',
+      'cowkoszyku/no-feature-deps': 'error',
     },
   },
 ];

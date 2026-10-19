@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Bulkly Biedronka",
-  "version": "1.0.2",
-  "description": "Catches Moja Biedronka app:// OAuth redirects and finishes sign-in on Bulkly /imports/biedronka.",
+  "name": "cowkoszyku Biedronka",
+  "version": "1.0.3",
+  "description": "Catches Moja Biedronka app:// OAuth redirects and finishes sign-in on cowkoszyku /imports/biedronka.",
   "permissions": ["webRequest", "webNavigation", "tabs"],
   "host_permissions": [
     "https://konto.biedronka.pl/*",
@@ -12,8 +12,8 @@
     "http://127.0.0.1:3000/*",
     "http://localhost:8080/*",
     "http://127.0.0.1:8080/*",
-    "*://shop.home.arpa/*",
-    "*://shop.piekna2.pl/*"
+    "*://cowkoszyku.home.arpa/*",
+    "*://cowkoszyku.piekna2.pl/*"
   ],
   "background": {
     "service_worker": "background.js"
@@ -33,12 +33,12 @@
         "http://localhost:8080/imports/biedronka*",
         "http://127.0.0.1:8080/imports/biedronka",
         "http://127.0.0.1:8080/imports/biedronka*",
-        "*://shop.home.arpa/imports/biedronka",
-        "*://shop.home.arpa/imports/biedronka*",
-        "*://shop.piekna2.pl/imports/biedronka",
-        "*://shop.piekna2.pl/imports/biedronka*"
+        "*://cowkoszyku.home.arpa/imports/biedronka",
+        "*://cowkoszyku.home.arpa/imports/biedronka*",
+        "*://cowkoszyku.piekna2.pl/imports/biedronka",
+        "*://cowkoszyku.piekna2.pl/imports/biedronka*"
       ],
-      "js": ["content-bulkly.js"],
+      "js": ["content-cowkoszyku.js"],
       "run_at": "document_start"
     },
     {

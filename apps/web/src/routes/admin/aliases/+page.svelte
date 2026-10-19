@@ -17,7 +17,7 @@
   const productQuery = $derived(text(view.productQuery));
 </script>
 
-<svelte:head><title>Aliases · Bulkly</title></svelte:head>
+<svelte:head><title>Aliases · cowkoszyku</title></svelte:head>
 
 <Notice message={data.error} />
 <div class="flex flex-wrap items-start justify-between gap-3">

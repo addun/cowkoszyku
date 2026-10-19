@@ -5,7 +5,7 @@
   let { data, form } = $props();
   const saved = data.status === 'migrated';
 </script>
-<svelte:head><title>Delete receipt · Bulkly</title></svelte:head>
+<svelte:head><title>Delete receipt · cowkoszyku</title></svelte:head>
 
 <Notice message={form?.message} />
 <Confirm

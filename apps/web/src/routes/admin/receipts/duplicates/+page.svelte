@@ -12,7 +12,7 @@
   const groups = $derived(arr(view.groups));
 </script>
 
-<svelte:head><title>Duplicate receipts · Bulkly</title></svelte:head>
+<svelte:head><title>Duplicate receipts · cowkoszyku</title></svelte:head>
 <div class="flex flex-col gap-2">
   <div class="flex flex-wrap items-center justify-between gap-3">
     <h1 class="text-2xl font-semibold tracking-tight">Duplicate receipts</h1>

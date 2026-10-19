@@ -13,7 +13,7 @@
   const groups = $derived(arr(view.groups));
 </script>
 
-<svelte:head><title>Comparison groups · Bulkly</title></svelte:head>
+<svelte:head><title>Comparison groups · cowkoszyku</title></svelte:head>
 
 <Notice message={data.error} />
 <div class="flex flex-wrap items-center justify-between gap-3">

@@ -108,7 +108,7 @@
   });
 </script>
 
-<svelte:head><title>Receipts · Bulkly</title></svelte:head>
+<svelte:head><title>Receipts · cowkoszyku</title></svelte:head>
 
 <Notice message={form?.message || data.error} />
 <div class="flex flex-wrap items-center justify-between gap-3">

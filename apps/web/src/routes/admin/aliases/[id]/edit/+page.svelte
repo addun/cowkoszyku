@@ -4,7 +4,7 @@
   let { data, form } = $props();
   const from = form?.fromProduct ?? data.fromProduct;
 </script>
-<svelte:head><title>Edit alias · Bulkly</title></svelte:head>
+<svelte:head><title>Edit alias · cowkoszyku</title></svelte:head>
 
 <Notice message={form?.message} />
 <AliasForm

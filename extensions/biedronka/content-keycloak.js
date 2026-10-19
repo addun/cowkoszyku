@@ -16,7 +16,7 @@ function forward(url) {
 window.addEventListener("message", function (e) {
   if (e.source !== window) return;
   var data = e.data;
-  if (!data || data.source !== "bulkly-biedronka" || !data.url) return;
+  if (!data || data.source !== "cowkoszyku-biedronka" || !data.url) return;
   forward(data.url);
 });
 

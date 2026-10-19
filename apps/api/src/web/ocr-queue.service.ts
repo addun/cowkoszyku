@@ -122,7 +122,7 @@ export function ocrFailMessage(err: unknown): string {
     return 'No products could be read from this bill. Try another photo or PDF.';
   }
   if (err instanceof NoPDFTextError) {
-    return 'This PDF could not be turned into images. Install poppler or run Bulkly in Docker, or photograph the bill.';
+    return 'This PDF could not be turned into images. Install poppler or run cowkoszyku in Docker, or photograph the bill.';
   }
   const msg = err instanceof Error ? err.message : String(err);
   return 'Could not read the bill: ' + msg;

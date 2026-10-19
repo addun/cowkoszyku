@@ -16,7 +16,7 @@
   const compare = $derived(text(view.compareInput) || formatQty(text(unit.compareValue)));
 </script>
 
-<svelte:head><title>Edit unit · Bulkly</title></svelte:head>
+<svelte:head><title>Edit unit · cowkoszyku</title></svelte:head>
 
 <Notice message={form?.message} />
 <h1 class="text-2xl font-semibold tracking-tight">Edit unit</h1>

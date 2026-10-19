@@ -65,7 +65,7 @@
 </script>
 
 <svelte:head>
-  <title>Products · Bulkly</title>
+  <title>Products · cowkoszyku</title>
 </svelte:head>
 
 {#if error}

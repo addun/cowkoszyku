@@ -61,7 +61,7 @@
 </script>
 
 <svelte:head>
-  <title>{product?.name ?? 'Produkt'} · Bulkly</title>
+  <title>{product?.name ?? 'Produkt'} · cowkoszyku</title>
 </svelte:head>
 
 <div class="flex flex-col gap-8">

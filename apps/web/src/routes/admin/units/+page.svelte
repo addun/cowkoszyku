@@ -16,7 +16,7 @@
   const units = $derived(arr(view.units));
 </script>
 
-<svelte:head><title>Units · Bulkly</title></svelte:head>
+<svelte:head><title>Units · cowkoszyku</title></svelte:head>
 
 <Notice message={form?.message || data.error} />
 <div class="flex flex-col gap-4">

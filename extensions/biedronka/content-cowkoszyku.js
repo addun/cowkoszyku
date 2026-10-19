@@ -1,13 +1,13 @@
-document.documentElement.dataset.bulklyBiedronkaExt = "1";
+document.documentElement.dataset.cowkoszykuBiedronkaExt = "1";
 
 function deliver(url) {
   if (!url) return;
-  document.documentElement.setAttribute("data-bulkly-biedronka-redirect", url);
-  document.documentElement.dispatchEvent(new Event("bulkly-biedronka-redirect"));
+  document.documentElement.setAttribute("data-cowkoszyku-biedronka-redirect", url);
+  document.documentElement.dispatchEvent(new Event("cowkoszyku-biedronka-redirect"));
 }
 
 function connect() {
-  var port = chrome.runtime.connect({ name: "bulkly-biedronka" });
+  var port = chrome.runtime.connect({ name: "cowkoszyku-biedronka" });
   port.onMessage.addListener(function (msg) {
     if (msg && msg.type === "biedronka-redirect" && msg.url) deliver(msg.url);
   });
