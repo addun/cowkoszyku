@@ -74,9 +74,7 @@ function boot() {
     showSession();
     render();
     if (!origin) return;
-    loadImported().then(function () {
-      if (access || refresh) return loadBills(true);
-    });
+    if (access || refresh) loadBills(true);
   });
 }
 
@@ -177,17 +175,26 @@ function signOut() {
   render();
 }
 
-async function loadImported() {
+async function markKnown(batch) {
+  var ids = [];
+  for (var i = 0; i < batch.length; i++) {
+    if (batch[i] && batch[i].id) ids.push(String(batch[i].id));
+  }
+  if (!ids.length || !origin) return;
   try {
-    var res = await fetch(origin + "/api/biedronka/imported");
+    var res = await fetch(origin + "/api/biedronka/imported", {
+      method: "POST",
+      headers: { Accept: "application/json", "Content-Type": "application/json" },
+      body: JSON.stringify({ ids: ids.slice(0, 200) }),
+    });
     if (!res.ok) return;
     var data = await res.json();
-    var ids = data && data.ids ? data.ids : [];
-    for (var i = 0; i < ids.length; i++) {
-      if (ids[i]) imported[ids[i]] = true;
+    var known = data && data.ids ? data.ids : [];
+    for (var j = 0; j < known.length; j++) {
+      if (known[j]) imported[known[j]] = true;
     }
   } catch (err) {
-    /* the list still works without previously imported ids */
+    /* the list still works; Import will skip duplicates */
   }
 }
 
@@ -221,6 +228,7 @@ async function loadBills(reset) {
         ? payload.results
         : [];
     rows = rows.concat(batch);
+    await markKnown(batch);
     var fromArchive = archived;
     var next = Number(payload.next_page);
     if (next && next > page) page = next;
@@ -387,11 +395,11 @@ function render() {
   if (!results) return;
   if (!rows.length) {
     var emptyRow = document.createElement("tr");
-    var cell = document.createElement("td");
-    cell.colSpan = 4;
-    cell.className = "muted";
-    cell.textContent = empty || "No bills.";
-    emptyRow.appendChild(cell);
+    var emptyCell = document.createElement("td");
+    emptyCell.colSpan = 4;
+    emptyCell.className = "muted";
+    emptyCell.textContent = empty || "No bills.";
+    emptyRow.appendChild(emptyCell);
     rowsEl.appendChild(emptyRow);
     return;
   }

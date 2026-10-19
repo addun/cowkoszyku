@@ -12,5 +12,17 @@
       "requestDomains": ["api.prod.biedronka.cloud"],
       "resourceTypes": ["xmlhttprequest", "other"]
     }
+  },
+  {
+    "id": 2,
+    "priority": 1,
+    "action": {
+      "type": "modifyHeaders",
+      "requestHeaders": [{ "header": "origin", "operation": "remove" }]
+    },
+    "condition": {
+      "requestDomains": ["konto.biedronka.pl"],
+      "resourceTypes": ["xmlhttprequest", "other"]
+    }
   }
 ]

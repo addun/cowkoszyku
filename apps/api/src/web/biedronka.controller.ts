@@ -1,4 +1,4 @@
-import { Controller, Get, Logger, Post, Req, Res } from '@nestjs/common';
+import { Controller, Logger, Post, Req, Res } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { DuplicateError, InvalidStoreError, InvalidUnitError } from '../domain/errors.js';
 import { billFromBiedronka, type BiedronkaTx } from '../imports/biedronka.js';
@@ -10,7 +10,7 @@ import { ProductsRepository } from '#app/store/products';
 import { RECEIPT_SOURCE_BIEDRONKA, ReceiptsRepository } from '#app/store/receipts';
 import { UnitsRepository } from '#app/store/units';
 import { billToImport, hydrateBill, matchStore, storeChainID } from './receipt-form.js';
-import { biedronkaImportBody } from './schema.js';
+import { biedronkaImportBody, biedronkaImportedBody } from './schema.js';
 
 @Controller()
 export class BiedronkaController {
@@ -24,9 +24,15 @@ export class BiedronkaController {
     private readonly units: UnitsRepository,
   ) {}
 
-  @Get('api/biedronka/imported')
-  biedronkaImported(@Res() res: Response): void {
-    res.json(this.biedronkaImportedState());
+  @Post('api/biedronka/imported')
+  biedronkaImported(@Req() req: Request, @Res() res: Response): void {
+    const parsed = biedronkaImportedBody.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ error: 'invalid id' });
+      return;
+    }
+    const ids = this.receipts.existingReceiptExternalIDs(RECEIPT_SOURCE_BIEDRONKA, parsed.data.ids);
+    res.json({ ids });
   }
 
   @Post('api/biedronka/import')
@@ -100,7 +106,7 @@ export class BiedronkaController {
       purchases = out.result.purchases;
     } catch (err) {
       if (err instanceof DuplicateError) {
-        if (this.receipts.listReceiptExternalIDs(RECEIPT_SOURCE_BIEDRONKA).includes(id)) {
+        if (this.receipts.existingReceiptExternalIDs(RECEIPT_SOURCE_BIEDRONKA, [id]).length > 0) {
           this.log.log(`import ${id}: skipped duplicate`);
           res.status(200).json({ status: 'skipped', id });
           return;
@@ -126,18 +132,6 @@ export class BiedronkaController {
     }
     this.log.log(`import ${id}: imported receipt_id=${receipt.id} purchases=${purchases}`);
     res.status(200).json({ status: 'imported', id, receipt_id: receipt.id, purchases });
-  }
-
-  private biedronkaImportedState(): { ids: string[]; since: string } {
-    let ids: string[];
-    try {
-      ids = this.receipts.listReceiptExternalIDs(RECEIPT_SOURCE_BIEDRONKA);
-    } catch {
-      ids = [];
-    }
-    if (!ids) ids = [];
-    const since = this.receipts.latestSourcedBoughtOn(RECEIPT_SOURCE_BIEDRONKA);
-    return { ids, since };
   }
 }
 

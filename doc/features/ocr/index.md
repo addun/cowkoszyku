@@ -18,7 +18,7 @@ Open **Receipts**, take a photo or choose a file (jpeg, png, webp, gif, or pdf, 
 
 Open `/imports/biedronka` (also linked from Receipts) and choose **Open Biedronka import**. The Chromium helper from `extensions/biedronka` opens its own tab, signs in to Moja Biedronka, and loads the bill list. The first page of e-bills loads automatically; **Load more** appends older bills. **Import** saves one bill, **Import all** saves every new bill on the list. Each imported e-paragon is saved as purchases immediately — there is no confirm step. Known till names match aliases and the catalog; new names become products (using the piece/weight units from Settings). Open the saved receipt to change products or the visit. API imports do not store a preview image.
 
-cowkoszyku stores the Biedronka transaction id on the receipt and skips ids it already has. Loyalty tokens stay in the helper. The helper exchanges the login code, lists bills, and downloads each receipt. cowkoszyku only receives the finished bill on **Import**.
+cowkoszyku stores the Biedronka transaction id on the receipt. The helper sends the ids on the current page, and cowkoszyku answers which of those are already saved. Loyalty tokens stay in the helper. The helper exchanges the login code, lists bills, and downloads each receipt. cowkoszyku only receives the finished bill on **Import**.
 
 Photo scans still show as reading, to confirm, failed, or saved. Open a scan to see its status. Failed scans can be sent back to the reader with **Read again**, or you can photograph or upload the bill again.
 

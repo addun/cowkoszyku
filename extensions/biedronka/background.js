@@ -26,17 +26,14 @@ function headerLocation(headers) {
   return "";
 }
 
-function isCowkoszykuOrigin(origin) {
+function pageOrigin(sender) {
   try {
-    var u = new URL(origin);
-    if (u.protocol !== "http:" && u.protocol !== "https:") return false;
-    if (u.username || u.password || u.pathname !== "/" || u.search || u.hash) return false;
-    if (u.hostname === "localhost" || u.hostname === "127.0.0.1") {
-      return u.port === "5173" || u.port === "3000" || u.port === "8080";
-    }
-    return (u.hostname === "cowkoszyku.home.arpa" || u.hostname === "cowkoszyku.piekna2.pl") && !u.port;
+    var raw = sender && sender.tab && sender.tab.url ? sender.tab.url : "";
+    var u = new URL(raw);
+    if (u.protocol !== "http:" && u.protocol !== "https:") return "";
+    return u.origin;
   } catch (err) {
-    return false;
+    return "";
   }
 }
 
@@ -49,7 +46,7 @@ function notifyCowkoszyku(url) {
 }
 
 function openImport(origin, sendResponse) {
-  if (!isCowkoszykuOrigin(origin)) {
+  if (!origin) {
     sendResponse({ ok: false, error: "unknown site" });
     return;
   }
@@ -112,7 +109,7 @@ chrome.webNavigation.onErrorOccurred.addListener(function (details) {
 chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
   if (!msg || !msg.type) return;
   if (msg.type === "open-import") {
-    openImport(String(msg.origin || ""), sendResponse);
+    openImport(pageOrigin(sender), sendResponse);
     return true;
   }
   if (msg.type === "biedronka-redirect" && msg.url) {
