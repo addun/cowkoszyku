@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Biedronka import · cowkoszyku</title>
+    <link rel="stylesheet" href="import.css" />
+  </head>
+  <body>
+    <main>
+      <h1>Biedronka import</h1>
+      <p class="muted" id="origin">Open this from cowkoszyku.</p>
+
+      <section id="signed-out" class="stack">
+        <div>
+          <button id="sign-in" class="primary" type="button">Sign in with Moja Biedronka</button>
+        </div>
+        <label for="code">Auth URL</label>
+        <textarea id="code" rows="3" spellcheck="false" autocapitalize="off" autocomplete="off"></textarea>
+        <p class="muted">After sign-in, this field fills itself. Click Finish sign-in. The code works once and expires in about a minute.</p>
+        <div>
+          <button id="finish" type="button">Finish sign-in</button>
+        </div>
+      </section>
+
+      <section id="signed-in" class="stack" hidden>
+        <p id="session" class="muted"></p>
+        <div>
+          <button id="sign-out" type="button">Sign out</button>
+        </div>
+      </section>
+
+      <p id="status" class="muted" hidden></p>
+
+      <section id="results" class="stack" hidden>
+        <div class="row">
+          <h2>Bills</h2>
+          <button id="import-all" type="button">Import all</button>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Store</th>
+              <th>Total</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="rows"></tbody>
+        </table>
+        <div>
+          <button id="more" type="button" hidden>Load more</button>
+        </div>
+      </section>
+    </main>
+    <script src="import.js"></script>
+  </body>
+</html>
