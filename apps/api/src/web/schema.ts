@@ -20,6 +20,10 @@ export const biedronkaTxId = z
   .max(128, 'invalid id')
   .regex(/^[\p{L}\p{N}_-]+$/u, 'invalid id');
 
+export const biedronkaImportedBody = z.object({
+  ids: z.array(biedronkaTxId).max(200),
+});
+
 export const biedronkaImportBody = z.object({
   id: field.pipe(biedronkaTxId),
   date: field,

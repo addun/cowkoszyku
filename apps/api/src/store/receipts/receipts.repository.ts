@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { and, desc, eq, inArray, ne, sql } from 'drizzle-orm';
+import { and, desc, eq, inArray, sql } from 'drizzle-orm';
 import { DatabaseService } from '../../db/database.service.js';
 import { changesOf, lastId } from '../../db/query.js';
 import { receipts, stores } from '../../db/schema.js';
@@ -55,13 +55,14 @@ export class ReceiptsRepository {
     return this.createSourcedReceiptInner(imagePathVal, source, externalId);
   }
 
-  listReceiptExternalIDs(source: string): string[] {
+  existingReceiptExternalIDs(source: string, ids: string[]): string[] {
     source = source.trim().toLowerCase();
-    if (source === '') return [];
+    const wanted = [...new Set(ids.map((id) => id.trim()).filter((id) => id !== ''))];
+    if (source === '' || wanted.length === 0) return [];
     return this.orm
       .select({ externalId: receipts.externalId })
       .from(receipts)
-      .where(and(eq(receipts.source, source), ne(receipts.externalId, '')))
+      .where(and(eq(receipts.source, source), inArray(receipts.externalId, wanted)))
       .all()
       .map((r) => r.externalId);
   }

@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "cowkoszyku Biedronka",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Opens the Biedronka bill list and sends finished bills to cowkoszyku.",
   "permissions": ["webRequest", "webNavigation", "tabs", "storage", "declarativeNetRequest", "declarativeNetRequestWithHostAccess"],
   "host_permissions": [
