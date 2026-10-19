@@ -74,7 +74,7 @@ function applyAliasStripMigration(db: DatabaseService): void {
 }
 
 function runStoreSmoke(): void {
-  const dir = mkdtempSync(join(tmpdir(), 'bulkly-drizzle-'));
+  const dir = mkdtempSync(join(tmpdir(), 'cowkoszyku-drizzle-'));
   const leftover = new Database(join(dir, 'bulkly.db'));
   leftover.exec(`
     CREATE TABLE goose_db_version (
@@ -555,7 +555,7 @@ function runStoreSmoke(): void {
 }
 
 function runDrizzleIdRepairSmoke(): void {
-  const dir = mkdtempSync(join(tmpdir(), 'bulkly-drizzle-repair-'));
+  const dir = mkdtempSync(join(tmpdir(), 'cowkoszyku-drizzle-repair-'));
   const first = new DatabaseService(new ConfigService({ DATA_DIR: dir }));
   first.onModuleDestroy();
 
@@ -593,7 +593,7 @@ function applyMigrationFile(db: Database.Database, file: string): void {
 }
 
 function assertAmountGroszeMigration(): void {
-  const dir = mkdtempSync(join(tmpdir(), 'bulkly-grosze-'));
+  const dir = mkdtempSync(join(tmpdir(), 'cowkoszyku-grosze-'));
   const raw = new Database(join(dir, 'bulkly.db'));
   try {
     raw.exec(`
@@ -638,7 +638,7 @@ function assertAmountGroszeMigration(): void {
     rmSync(dir, { recursive: true, force: true });
   }
 
-  const badDir = mkdtempSync(join(tmpdir(), 'bulkly-grosze-bad-'));
+  const badDir = mkdtempSync(join(tmpdir(), 'cowkoszyku-grosze-bad-'));
   const bad = new Database(join(badDir, 'bulkly.db'));
   try {
     bad.exec(`

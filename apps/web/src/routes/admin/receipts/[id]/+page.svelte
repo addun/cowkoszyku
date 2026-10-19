@@ -5,7 +5,7 @@
   import ReceiptStatus from './status.svelte';
   let { data, form } = $props();
 </script>
-<svelte:head><title>Receipt · Bulkly</title></svelte:head>
+<svelte:head><title>Receipt · cowkoszyku</title></svelte:head>
 
 <Notice message={form?.message || data.error} />
 {#if data.kind === 'status'}

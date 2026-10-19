@@ -15,7 +15,7 @@
   const aliases = $derived(num(plan.aliases));
 </script>
 
-<svelte:head><title>Merge product · Bulkly</title></svelte:head>
+<svelte:head><title>Merge product · cowkoszyku</title></svelte:head>
 
 <Notice message={form?.message} />
 <div class="flex max-w-xl flex-col gap-4">

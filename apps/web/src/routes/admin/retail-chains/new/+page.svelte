@@ -3,7 +3,7 @@
   import RetailChainForm from '$lib/admin/RetailChainForm.svelte';
   let { form } = $props();
 </script>
-<svelte:head><title>Add retail chain · Bulkly</title></svelte:head>
+<svelte:head><title>Add retail chain · cowkoszyku</title></svelte:head>
 
 <Notice message={form?.message} />
 <RetailChainForm creating retailChain={form?.retailChain ?? { id: 0, name: '', legalName: '', taxId: '' }} />

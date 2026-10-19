@@ -25,7 +25,7 @@
   const picked = $derived(conversions.find((row) => text(row.unitId) === unitId));
 </script>
 
-<svelte:head><title>Change unit · Bulkly</title></svelte:head>
+<svelte:head><title>Change unit · cowkoszyku</title></svelte:head>
 
 <Notice message={form?.message} />
 <div class="flex max-w-xl flex-col gap-4">

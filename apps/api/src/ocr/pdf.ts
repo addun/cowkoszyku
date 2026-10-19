@@ -46,7 +46,7 @@ export async function pdfPageJPEGs(raw: Buffer): Promise<Buffer[]> {
 
 export async function extractPDFText(raw: Buffer): Promise<string> {
   try {
-    const dir = await mkdtemp(join(tmpdir(), 'bulkly-pdf-'));
+    const dir = await mkdtemp(join(tmpdir(), 'cowkoszyku-pdf-'));
     try {
       const pdfPath = join(dir, 'in.pdf');
       await writeFile(pdfPath, pdfPayload(raw), { mode: 0o600 });
@@ -205,7 +205,7 @@ function escapeXml(s: string): string {
 }
 
 function errNeedPoppler(): NoPDFTextError {
-  return new NoPDFTextError('this PDF could not be read as images: install poppler or run Bulkly in Docker');
+  return new NoPDFTextError('this PDF could not be read as images: install poppler or run cowkoszyku in Docker');
 }
 
 async function withRasterized<T>(raw: Buffer, dpi: string, fn: (paths: string[]) => Promise<T>): Promise<T> {
@@ -224,7 +224,7 @@ async function rasterizePDF(
   dpi: string,
   lastPage: number,
 ): Promise<{ pages: string[]; cleanup: () => Promise<void> }> {
-  const dir = await mkdtemp(join(tmpdir(), 'bulkly-pdf-'));
+  const dir = await mkdtemp(join(tmpdir(), 'cowkoszyku-pdf-'));
   const cleanup = async () => {
     await rm(dir, { recursive: true, force: true });
   };

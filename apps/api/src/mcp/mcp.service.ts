@@ -47,12 +47,12 @@ export class McpService {
   createServer(): McpServer {
     const currency = this.currency();
     const products = this.products;
-    const server = new McpServer({ name: 'bulkly', version: '1.0.0' });
+    const server = new McpServer({ name: 'cowkoszyku', version: '1.0.0' });
     server.registerTool(
       'best_price',
       {
         description:
-          'Find products in the Bulkly purchase log and return the best price for the unit compare quantity (1 by default, often 100 for grams). ' +
+          'Find products in the cowkoszyku purchase log and return the best price for the unit compare quantity (1 by default, often 100 for grams). ' +
           'Uses the lowest unit price from the last 30 days when one exists; otherwise the most recent recorded unit price. ' +
           'Catalog names are Polish (plus receipt aliases). Search with the user\'s words first, then retry with a Polish translation if nothing matches. ' +
           'If several products match, return all of them and do not pick one.',

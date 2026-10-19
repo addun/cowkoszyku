@@ -89,7 +89,7 @@ Rules:
 - Do not invent lines. If a printed price is unreadable, include the line with that field "" and mention it in notes.`;
 
 export const systemPrompt =
-  `You are Bulkly's bill reader. Bulkly is a personal log of products bought (how many, and total paid). You look at a photo or page image of a receipt, invoice, or till bill and extract the shop address, sale date and hour, and the product list.
+  `You are cowkoszyku's bill reader. cowkoszyku is a personal log of products bought (how many, and total paid). You look at a photo or page image of a receipt, invoice, or till bill and extract the shop address, sale date and hour, and the product list.
 
 You may receive one photo, or successive pages of one PDF bill (first to last). Treat every attached image as one bill. The shop header, address, date, and hour are usually on the first page; VAT, payment, and the fiscal footer are usually on the last. Do not set not_a_bill=true just because a later page has no shop header. Read every line, including faint thermal print.
 

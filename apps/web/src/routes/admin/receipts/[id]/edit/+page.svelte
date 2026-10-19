@@ -20,7 +20,7 @@
   const stores = $derived(arr(view.stores).map(obj));
 </script>
 
-<svelte:head><title>Edit visit · Bulkly</title></svelte:head>
+<svelte:head><title>Edit visit · cowkoszyku</title></svelte:head>
 
 <Notice message={form?.message} />
 <div class="flex flex-col gap-1">

@@ -13,7 +13,7 @@
   const stores = $derived(arr(view.stores));
 </script>
 
-<svelte:head><title>Stores · Bulkly</title></svelte:head>
+<svelte:head><title>Stores · cowkoszyku</title></svelte:head>
 
 <Notice message={data.error} />
 <div class="flex flex-wrap items-center justify-between gap-3">

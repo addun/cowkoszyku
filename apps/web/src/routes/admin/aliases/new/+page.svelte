@@ -3,7 +3,7 @@
   import AliasForm from '$lib/admin/AliasForm.svelte';
   let { data, form } = $props();
 </script>
-<svelte:head><title>Add alias · Bulkly</title></svelte:head>
+<svelte:head><title>Add alias · cowkoszyku</title></svelte:head>
 
 <Notice message={form?.message} />
 <AliasForm

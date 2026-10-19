@@ -4,7 +4,7 @@
   let { data, form } = $props();
   const noun = data.purchase.kind === 'price' ? 'price' : 'purchase';
 </script>
-<svelte:head><title>Delete purchase · Bulkly</title></svelte:head>
+<svelte:head><title>Delete purchase · cowkoszyku</title></svelte:head>
 
 <Notice message={form?.message} />
 <Confirm

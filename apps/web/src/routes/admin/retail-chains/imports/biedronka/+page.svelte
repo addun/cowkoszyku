@@ -17,7 +17,7 @@
   const result = $derived(view.result ? obj(view.result) : null);
 </script>
 
-<svelte:head><title>Import Biedronka shops · Bulkly</title></svelte:head>
+<svelte:head><title>Import Biedronka shops · cowkoszyku</title></svelte:head>
 
 <Notice message={form?.message} />
 <div class="flex flex-col gap-2">

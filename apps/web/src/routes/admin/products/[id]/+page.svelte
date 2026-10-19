@@ -28,7 +28,7 @@
   }
 </script>
 
-<svelte:head><title>{data.product.name} · Bulkly</title></svelte:head>
+<svelte:head><title>{data.product.name} · cowkoszyku</title></svelte:head>
 
 <Notice message={data.error} />
 <div class="flex flex-col gap-8">

@@ -26,7 +26,7 @@ function headerLocation(headers) {
   return "";
 }
 
-function isBulklyImportUrl(url) {
+function isCowkoszykuImportUrl(url) {
   try {
     var u = new URL(url);
     if (u.pathname.indexOf("/imports/biedronka") !== 0) return false;
@@ -34,13 +34,13 @@ function isBulklyImportUrl(url) {
     if (host === "localhost" || host === "127.0.0.1") {
       return u.port === "5173" || u.port === "3000" || u.port === "8080";
     }
-    return host === "shop.home.arpa" || host === "shop.piekna2.pl";
+    return host === "cowkoszyku.home.arpa" || host === "cowkoszyku.piekna2.pl";
   } catch (err) {
     return false;
   }
 }
 
-function notifyBulkly(url) {
+function notifyCowkoszyku(url) {
   ports.forEach(function (port) {
     try {
       port.postMessage({ type: "biedronka-redirect", url: url });
@@ -48,7 +48,7 @@ function notifyBulkly(url) {
   });
   chrome.tabs.query({}, function (tabs) {
     (tabs || []).forEach(function (tab) {
-      if (!tab.id || !isBulklyImportUrl(tab.url || "")) return;
+      if (!tab.id || !isCowkoszykuImportUrl(tab.url || "")) return;
       chrome.tabs.sendMessage(tab.id, { type: "biedronka-redirect", url: url }, function () {
         void chrome.runtime.lastError;
       });
@@ -62,7 +62,7 @@ function captureRedirect(url, closeTabId) {
   var now = Date.now();
   if (callback === lastSent.url && now - lastSent.at < 3000) return true;
   lastSent = { url: callback, at: now };
-  notifyBulkly(callback);
+  notifyCowkoszyku(callback);
   if (typeof closeTabId === "number" && closeTabId >= 0) {
     chrome.tabs.remove(closeTabId, function () {
       void chrome.runtime.lastError;
@@ -72,7 +72,7 @@ function captureRedirect(url, closeTabId) {
 }
 
 chrome.runtime.onConnect.addListener(function (port) {
-  if (port.name !== "bulkly-biedronka") return;
+  if (port.name !== "cowkoszyku-biedronka") return;
   ports.push(port);
   port.onDisconnect.addListener(function () {
     ports = ports.filter(function (p) {

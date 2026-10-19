@@ -1,6 +1,6 @@
 # Product aliases
 
-The same thing often has different names on the shelf and on the bill. Lidl might print “Mąka tortowa 1kg” while you keep the product as Cake flour. An alias is that other name, tied to the product so Bulkly still treats it as one item.
+The same thing often has different names on the shelf and on the bill. Lidl might print “Mąka tortowa 1kg” while you keep the product as Cake flour. An alias is that other name, tied to the product so cowkoszyku still treats it as one item.
 
 Each alias has one scope:
 

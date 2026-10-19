@@ -11,17 +11,17 @@
 
   onMount(() => {
     const root = document.documentElement;
-    client.setHelper(root.dataset.bulklyBiedronkaExt === '1');
+    client.setHelper(root.dataset.cowkoszykuBiedronkaExt === '1');
     const onRedirect = () => {
-      const url = root.getAttribute('data-bulkly-biedronka-redirect') || '';
-      root.removeAttribute('data-bulkly-biedronka-redirect');
+      const url = root.getAttribute('data-cowkoszyku-biedronka-redirect') || '';
+      root.removeAttribute('data-cowkoszyku-biedronka-redirect');
       if (!url) return;
       code = url;
       client.redirectFilled();
     };
-    root.addEventListener('bulkly-biedronka-redirect', onRedirect);
+    root.addEventListener('cowkoszyku-biedronka-redirect', onRedirect);
     void client.loadImported();
-    return () => root.removeEventListener('bulkly-biedronka-redirect', onRedirect);
+    return () => root.removeEventListener('cowkoszyku-biedronka-redirect', onRedirect);
   });
 
   async function signIn() {
@@ -38,7 +38,7 @@
 </script>
 
 <svelte:head>
-  <title>Biedronka import · Bulkly</title>
+  <title>Biedronka import · cowkoszyku</title>
 </svelte:head>
 
 <div class="flex flex-col gap-6">

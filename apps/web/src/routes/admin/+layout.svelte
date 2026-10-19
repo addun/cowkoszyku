@@ -8,7 +8,7 @@
 <Sidebar.Provider>
   <Sidebar.Root>
     <Sidebar.Header class="h-14 justify-center px-4">
-      <a href="/" data-sveltekit-reload class="text-sm font-semibold tracking-tight">Bulkly</a>
+      <a href="/" data-sveltekit-reload class="text-sm font-semibold tracking-tight">cowkoszyku</a>
     </Sidebar.Header>
     <SidebarNav />
   </Sidebar.Root>

@@ -17,38 +17,48 @@
     priceNote: string;
   };
 
+  let { data } = $props();
+
   let query = $state('');
-  let mode = $state<'search' | 'popular'>('popular');
-  let products = $state<PromoCard[]>([]);
-  let error = $state('');
+  let search = $state<{ products: PromoCard[]; error: string } | null>(null);
   let active = $state(-1);
   let timer = 0;
+  let request = 0;
+
+  const mode = $derived(query.trim() && search ? 'search' : 'popular');
+  const products = $derived(mode === 'search' && search ? search.products : data.products);
+  const error = $derived(mode === 'search' && search ? search.error : data.error);
 
   async function load(q: string) {
-    error = '';
+    const id = ++request;
     try {
       const res = await fetch(`/api/lookup.json?q=${encodeURIComponent(q)}`);
+      if (id !== request) return;
       if (!res.ok) {
-        error = 'Nie udało się wyszukać produktów.';
-        products = [];
+        search = { products: [], error: 'Nie udało się wyszukać produktów.' };
         return;
       }
-      const body = (await res.json()) as { mode: 'search' | 'popular'; products: PromoCard[] };
-      mode = body.mode;
-      products = body.products;
+      const body = (await res.json()) as { products: PromoCard[] };
+      search = { products: body.products, error: '' };
       active = -1;
     } catch {
-      error = 'API jest niedostępne.';
-      products = [];
+      if (id !== request) return;
+      search = { products: [], error: 'API jest niedostępne.' };
     }
   }
 
   function onInput(event: Event) {
     const value = (event.currentTarget as HTMLInputElement).value;
     query = value;
+    const q = value.trim();
     clearTimeout(timer);
+    if (!q) {
+      request += 1;
+      active = -1;
+      return;
+    }
     timer = window.setTimeout(() => {
-      void load(value.trim());
+      void load(q);
     }, 150);
   }
 
@@ -66,13 +76,10 @@
     active = (next + products.length) % products.length;
   }
 
-  $effect(() => {
-    void load('');
-  });
 </script>
 
 <svelte:head>
-  <title>Czy to promka · Bulkly</title>
+  <title>Czy to promka · cowkoszyku</title>
 </svelte:head>
 
 <div class="flex flex-col gap-8">

@@ -29,7 +29,7 @@ async function bootstrap(): Promise<void> {
   const port = Number(process.env.API_PORT) || 8080;
   await app.listen(port, host);
 
-  console.log(`bulkly listening on ${host}:${port} (data ${process.env.DATA_DIR || './data'})`);
+  console.log(`cowkoszyku listening on ${host}:${port} (data ${process.env.DATA_DIR || './data'})`);
 }
 
 void bootstrap();

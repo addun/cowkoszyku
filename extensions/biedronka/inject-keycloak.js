@@ -5,7 +5,7 @@
     var raw = String(url || "");
     if (raw.indexOf(PREFIX) !== 0) return false;
     if (/[?&#]code=/.test(raw)) {
-      window.postMessage({ source: "bulkly-biedronka", url: raw }, "*");
+      window.postMessage({ source: "cowkoszyku-biedronka", url: raw }, "*");
     }
     return true;
   }

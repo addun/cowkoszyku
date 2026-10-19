@@ -7,7 +7,7 @@ const REDIRECT = 'app://cma20.biedronka.pl';
 export const HINT_HELPER =
   'The Chromium helper fills this field after Moja Biedronka sign-in. Click Finish sign-in to continue. The code works once and expires in about a minute.';
 export const HINT_PASTE =
-  'After SMS (or if you are already signed in), the login tries to open app://cma20.biedronka.pl?code=…. Paste that address here. To fill it automatically, load the unpacked helper from extensions/biedronka (Chrome, Edge, Brave, or Arc), then refresh. The helper matches localhost:5173, 127.0.0.1:5173, localhost:3000, shop.home.arpa, and shop.piekna2.pl. The code works once and expires in about a minute.';
+  'After SMS (or if you are already signed in), the login tries to open app://cma20.biedronka.pl?code=…. Paste that address here. To fill it automatically, load the unpacked helper from extensions/biedronka (Chrome, Edge, Brave, or Arc), then refresh. The helper matches localhost:5173, 127.0.0.1:5173, localhost:3000, cowkoszyku.home.arpa, and cowkoszyku.piekna2.pl. The code works once and expires in about a minute.';
 
 export type BiedronkaTx = {
   id?: string;
@@ -17,8 +17,8 @@ export type BiedronkaTx = {
   total_price?: number;
   receipt?: unknown;
   source?: string;
-  bulkly_status?: string;
-  bulkly_error?: string;
+  cowkoszyku_status?: string;
+  cowkoszyku_error?: string;
   receipt_id?: number;
 };
 
@@ -46,8 +46,8 @@ export class BiedronkaImport {
 
   constructor() {
     try {
-      localStorage.removeItem('bulkly.biedronka.tokens');
-      this.#pkce = sessionStorage.getItem('bulkly.biedronka.pkce') || '';
+      localStorage.removeItem('cowkoszyku.biedronka.tokens');
+      this.#pkce = sessionStorage.getItem('cowkoszyku.biedronka.pkce') || '';
     } catch {
       this.#pkce = '';
     }
@@ -80,7 +80,7 @@ export class BiedronkaImport {
     const pkce = await generatePkce();
     this.#pkce = pkce.verifier;
     try {
-      sessionStorage.setItem('bulkly.biedronka.pkce', pkce.verifier);
+      sessionStorage.setItem('cowkoszyku.biedronka.pkce', pkce.verifier);
     } catch {
       /* session storage can be blocked */
     }
@@ -120,7 +120,7 @@ export class BiedronkaImport {
       if (!next.access_token) throw new Error('token rejected');
       this.#pkce = '';
       try {
-        sessionStorage.removeItem('bulkly.biedronka.pkce');
+        sessionStorage.removeItem('cowkoszyku.biedronka.pkce');
       } catch {
         /* ignore */
       }
@@ -143,7 +143,7 @@ export class BiedronkaImport {
     this.#refresh = '';
     this.#pkce = '';
     try {
-      sessionStorage.removeItem('bulkly.biedronka.pkce');
+      sessionStorage.removeItem('cowkoszyku.biedronka.pkce');
     } catch {
       /* ignore */
     }
@@ -214,15 +214,15 @@ export class BiedronkaImport {
 
   label(tx: BiedronkaTx): string {
     if (!tx.id) return '';
-    if (tx.bulkly_status === 'imported') return 'imported';
-    if (tx.bulkly_status === 'skipped') return 'already in';
-    if (tx.bulkly_error) return tx.bulkly_error;
+    if (tx.cowkoszyku_status === 'imported') return 'imported';
+    if (tx.cowkoszyku_status === 'skipped') return 'already in';
+    if (tx.cowkoszyku_error) return tx.cowkoszyku_error;
     if (this.#imported[tx.id]) return 'already in';
     return '';
   }
 
   canImport(tx: BiedronkaTx): boolean {
-    return Boolean(tx.id && !this.#imported[tx.id] && tx.bulkly_status !== 'imported' && tx.bulkly_status !== 'skipped');
+    return Boolean(tx.id && !this.#imported[tx.id] && tx.cowkoszyku_status !== 'imported' && tx.cowkoszyku_status !== 'skipped');
   }
 
   async importOne(tx: BiedronkaTx): Promise<void> {
@@ -231,15 +231,15 @@ export class BiedronkaImport {
     this.#syncImportAll();
     this.status = 'Importing…';
     try {
-      tx.bulkly_error = '';
+      tx.cowkoszyku_error = '';
       await this.#ensureFresh();
       await this.#ensureReceipt(tx);
       await this.#postImport(tx);
-      this.status = tx.bulkly_status === 'skipped' ? 'Already in receipts.' : 'Imported. Open Receipts to edit products or the visit.';
+      this.status = tx.cowkoszyku_status === 'skipped' ? 'Already in receipts.' : 'Imported. Open Receipts to edit products or the visit.';
     } catch (err) {
-      tx.bulkly_error = messageOf(err);
-      console.info('[biedronka]', tx.id, 'import failed:', tx.bulkly_error);
-      this.status = tx.bulkly_error;
+      tx.cowkoszyku_error = messageOf(err);
+      console.info('[biedronka]', tx.id, 'import failed:', tx.cowkoszyku_error);
+      this.status = tx.cowkoszyku_error;
     }
     this.importing = false;
     this.rows = [...this.rows];
@@ -270,12 +270,12 @@ export class BiedronkaImport {
         try {
           await this.#ensureReceipt(tx);
           await this.#postImport(tx);
-          if (tx.bulkly_status === 'skipped') skipped++;
+          if (tx.cowkoszyku_status === 'skipped') skipped++;
           else imported++;
         } catch (err) {
-          tx.bulkly_error = messageOf(err);
+          tx.cowkoszyku_error = messageOf(err);
           failed++;
-          console.info('[biedronka]', tx.id, 'import failed:', tx.bulkly_error);
+          console.info('[biedronka]', tx.id, 'import failed:', tx.cowkoszyku_error);
         }
       }
       const parts: string[] = [];
@@ -342,12 +342,12 @@ export class BiedronkaImport {
       receipt: tx.receipt,
     })) as { status?: string; receipt_id?: number };
     if (out?.status === 'skipped') {
-      tx.bulkly_status = 'skipped';
+      tx.cowkoszyku_status = 'skipped';
       if (tx.id) this.#imported[tx.id] = true;
       console.info('[biedronka]', tx.id, 'skipped duplicate');
       return;
     }
-    tx.bulkly_status = 'imported';
+    tx.cowkoszyku_status = 'imported';
     tx.receipt_id = out?.receipt_id;
     if (tx.id) this.#imported[tx.id] = true;
     console.info('[biedronka]', tx.id, `imported receipt_id=${out?.receipt_id}`);
