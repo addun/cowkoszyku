@@ -1,4 +1,4 @@
-import { Controller, Get, Logger, Param, Post, Query, Req, Res } from '@nestjs/common';
+import { Controller, Get, Logger, Post, Req, Res } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { DuplicateError, InvalidStoreError, InvalidUnitError } from '../domain/errors.js';
 import { billFromBiedronka, type BiedronkaTx } from '../imports/biedronka.js';
@@ -10,22 +10,11 @@ import { ProductsRepository } from '#app/store/products';
 import { RECEIPT_SOURCE_BIEDRONKA, ReceiptsRepository } from '#app/store/receipts';
 import { UnitsRepository } from '#app/store/units';
 import { billToImport, hydrateBill, matchStore, storeChainID } from './receipt-form.js';
-import { biedronkaImportBody, biedronkaPageQuery, biedronkaTokenBody, biedronkaTxId, formIssue } from './schema.js';
-
-const biedronkaAPIBase = 'https://api.prod.biedronka.cloud/api/v7';
-const biedronkaTokenURL = 'https://konto.biedronka.pl/realms/loyalty/protocol/openid-connect/token';
-const biedronkaAPIUA = 'Android/2.22.2';
-const biedronkaAuthUA =
-  'Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Mobile Safari/537.36';
-const biedronkaClientID = 'cma20';
-const biedronkaRedirect = 'app://cma20.biedronka.pl';
-const biedronkaMaxBody = 5 << 20;
+import { biedronkaImportBody } from './schema.js';
 
 @Controller()
 export class BiedronkaController {
   private readonly log = new Logger('Biedronka');
-  private readonly biedronkaAPI = biedronkaAPIBase;
-  private readonly biedronkaAuth = biedronkaTokenURL;
 
   constructor(
     private readonly receipts: ReceiptsRepository,
@@ -42,11 +31,6 @@ export class BiedronkaController {
 
   @Post('api/biedronka/import')
   biedronkaImport(@Req() req: Request, @Res() res: Response): void {
-    const auth = String(req.headers.authorization ?? '').trim();
-    if (auth === '') {
-      res.status(401).json({ error: 'missing token' });
-      return;
-    }
     const parsed = biedronkaImportBody.safeParse(req.body);
     if (!parsed.success) {
       const idIssue = parsed.error.issues.some((issue) => issue.path[0] === 'id');
@@ -144,79 +128,6 @@ export class BiedronkaController {
     res.status(200).json({ status: 'imported', id, receipt_id: receipt.id, purchases });
   }
 
-  @Get('api/biedronka/transactions')
-  async biedronkaTransactions(
-    @Query({ schema: biedronkaPageQuery }) query: { page: number; archived: boolean },
-    @Req() req: Request,
-    @Res() res: Response,
-  ): Promise<void> {
-    const path = query.archived ? 'transactions/archived/' : 'transactions/';
-    await this.proxyBiedronka(
-      req,
-      res,
-      'GET',
-      this.biedronkaAPIURL(path),
-      { page: String(query.page), ...last30DayRange() },
-      null,
-      null,
-    );
-  }
-
-  @Get('api/biedronka/transactions/:id')
-  async biedronkaTransaction(
-    @Param('id', { schema: biedronkaTxId }) id: string,
-    @Req() req: Request,
-    @Res() res: Response,
-  ): Promise<void> {
-    await this.proxyBiedronka(req, res, 'GET', this.biedronkaAPIURL('transactions/' + id + '/'), null, null, null);
-  }
-
-  @Post('api/biedronka/token')
-  async biedronkaToken(@Req() req: Request, @Res() res: Response): Promise<void> {
-    const inn = biedronkaTokenBody.safeParse(req.body);
-    if (!inn.success) {
-      res.status(400).json({ error: formIssue(inn.error) });
-      return;
-    }
-    const grant = inn.data.grant_type;
-    const form = new URLSearchParams();
-    form.set('client_id', biedronkaClientID);
-    form.set('redirect_uri', biedronkaRedirect);
-    switch (grant) {
-      case 'refresh_token': {
-        form.set('grant_type', 'refresh_token');
-        form.set('refresh_token', inn.data.refresh_token);
-        break;
-      }
-      case 'authorization_code': {
-        const code = biedronkaAuthCode(inn.data.code);
-        if (!code) {
-          res.status(400).json({ error: 'missing auth code' });
-          return;
-        }
-        form.set('grant_type', 'authorization_code');
-        form.set('code', code);
-        form.set('code_verifier', inn.data.code_verifier);
-        break;
-      }
-      default:
-        res.status(400).json({ error: 'unsupported grant' });
-        return;
-    }
-    await this.proxyBiedronka(
-      req,
-      res,
-      'POST',
-      this.biedronkaAuthURL(),
-      null,
-      {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'User-Agent': biedronkaAuthUA,
-      },
-      form.toString(),
-    );
-  }
-
   private biedronkaImportedState(): { ids: string[]; since: string } {
     let ids: string[];
     try {
@@ -228,90 +139,6 @@ export class BiedronkaController {
     const since = this.receipts.latestSourcedBoughtOn(RECEIPT_SOURCE_BIEDRONKA);
     return { ids, since };
   }
-
-  private async proxyBiedronka(
-    req: Request,
-    res: Response,
-    method: string,
-    rawURL: string,
-    query: Record<string, string> | null,
-    extra: Record<string, string> | null,
-    body: string | null,
-  ): Promise<void> {
-    let auth = String(req.headers.authorization ?? '').trim();
-    if (method !== 'POST' && auth === '') {
-      this.log.warn(`proxy ${method} ${rawURL}: missing token`);
-      res.status(401).json({ error: 'missing token' });
-      return;
-    }
-    if (method === 'POST') auth = '';
-    try {
-      const { status, contentType, payload } = await this.biedronkaDo(req, method, rawURL, query, extra, body, auth);
-      res.status(status).type(contentType).send(payload);
-    } catch (err) {
-      this.log.warn(`proxy ${method} ${rawURL} failed: ${err instanceof Error ? err.message : String(err)}`);
-      res.status(502).json({ error: 'could not reach Biedronka' });
-    }
-  }
-
-  private async biedronkaDo(
-    _req: Request,
-    method: string,
-    rawURL: string,
-    query: Record<string, string> | null,
-    extra: Record<string, string> | null,
-    body: string | null,
-    auth: string,
-  ): Promise<{ status: number; contentType: string; payload: Buffer }> {
-    const parsed = new URL(rawURL);
-    if (query) {
-      parsed.search = new URLSearchParams(query).toString();
-    }
-    const headers = new Headers();
-    headers.set('User-Agent', biedronkaAPIUA);
-    headers.set('Accept-Language', 'pl-PL');
-    headers.set('Accept', 'application/json');
-    if (auth !== '') headers.set('Authorization', auth);
-    if (extra) {
-      for (const [k, v] of Object.entries(extra)) headers.set(k, v);
-    }
-    const resp = await fetch(parsed.toString(), {
-      method,
-      headers,
-      body: body ?? undefined,
-      signal: AbortSignal.timeout(30_000),
-    });
-    const payload = Buffer.from(await resp.arrayBuffer());
-    if (payload.length > biedronkaMaxBody) throw new Error('response too large');
-    let ct = resp.headers.get('content-type') ?? '';
-    if (ct === '') ct = 'application/json';
-    this.log.log(`${method} ${parsed.pathname}${parsed.search} -> ${resp.status} ${payload.length}B`);
-    if (method === 'GET' && payload.length < 200) this.log.log(`body ${payload.toString('utf8')}`);
-    return { status: resp.status, contentType: ct, payload };
-  }
-
-  private biedronkaAPIURL(path: string): string {
-    let base = this.biedronkaAPI.replace(/\/+$/, '');
-    if (base === '') base = biedronkaAPIBase;
-    return base + '/' + path.replace(/^\/+/, '');
-  }
-
-  private biedronkaAuthURL(): string {
-    return this.biedronkaAuth || biedronkaTokenURL;
-  }
-}
-
-function last30DayRange(): { start_date: string; end_date: string } {
-  const end = new Date();
-  const start = new Date(end.getFullYear(), end.getMonth(), end.getDate() - 29);
-  return { start_date: calendarDay(start), end_date: calendarDay(end) };
-}
-
-function calendarDay(d: Date): string {
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${y}-${m}-${day}`;
 }
 
 function receiptKind(receipt: unknown): string {
@@ -320,34 +147,4 @@ function receiptKind(receipt: unknown): string {
   return 'other';
 }
 
-function biedronkaAuthCode(value: string): string | null {
-  let raw = value.trim();
-  raw = raw.replace(/^["']+|["']+$/g, '');
-  if (raw === '') return null;
-  const app = raw.indexOf('app://');
-  if (app >= 0) {
-    raw = raw.slice(app);
-    const end = raw.search(/[ \t\n\r]/);
-    if (end >= 0) raw = raw.slice(0, end);
-    raw = raw.replace(/[.,;"']+$/g, '');
-  }
-  if (raw.includes('://') || raw.startsWith('app:') || raw.includes('code=')) {
-    return biedronkaCodeFromRedirect(raw);
-  }
-  return raw;
-}
-
-function biedronkaCodeFromRedirect(raw: string): string | null {
-  try {
-    const u = new URL(raw);
-    let code = u.searchParams.get('code')?.trim() ?? '';
-    if (code === '' && u.hash) {
-      const fq = new URLSearchParams(u.hash.replace(/^#/, ''));
-      code = fq.get('code')?.trim() ?? '';
-    }
-    return code === '' ? null : code;
-  } catch {
-    return null;
-  }
-}
 

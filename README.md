@@ -44,7 +44,7 @@ Optional environment (read by the web app):
 
 The Svelte home page calls `GET /api/lookup.json`. Admin pages are Svelte routes (`/admin/products`, `/admin/stores`, and the rest) that call `/api/admin/...`. Receipt and product files are served from `/images/`. Receipt previews are `GET /api/admin/receipts/:id/preview`.
 
-**Scan a bill:** open [http://localhost:5173/admin/receipts](http://localhost:5173/admin/receipts). **Moja Biedronka:** open [http://localhost:5173/imports/biedronka](http://localhost:5173/imports/biedronka). Docker includes Poppler so PDFs can be rasterized; locally, install the same with `brew install poppler`. The Chrome helper remains at `extensions/biedronka`.
+**Scan a bill:** open [http://localhost:5173/admin/receipts](http://localhost:5173/admin/receipts). **Moja Biedronka:** open [http://localhost:5173/imports/biedronka](http://localhost:5173/imports/biedronka) and use the helper at `extensions/biedronka`. The helper opens the bill list; cowkoszyku only saves the finished bill. Docker includes Poppler so PDFs can be rasterized; locally, install the same with `brew install poppler`.
 
 ## Run with Docker
 

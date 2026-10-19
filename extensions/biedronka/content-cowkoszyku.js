@@ -1,25 +1,18 @@
 document.documentElement.dataset.cowkoszykuBiedronkaExt = "1";
 
-function deliver(url) {
-  if (!url) return;
-  document.documentElement.setAttribute("data-cowkoszyku-biedronka-redirect", url);
-  document.documentElement.dispatchEvent(new Event("cowkoszyku-biedronka-redirect"));
-}
-
-function connect() {
-  var port = chrome.runtime.connect({ name: "cowkoszyku-biedronka" });
-  port.onMessage.addListener(function (msg) {
-    if (msg && msg.type === "biedronka-redirect" && msg.url) deliver(msg.url);
-  });
-  port.onDisconnect.addListener(function () {
-    setTimeout(connect, 400);
-  });
-}
-
-connect();
-
-chrome.runtime.onMessage.addListener(function (msg, _sender, sendResponse) {
-  if (!msg || msg.type !== "biedronka-redirect" || !msg.url) return;
-  deliver(msg.url);
-  sendResponse({ ok: true });
-});
+document.addEventListener(
+  "click",
+  function (event) {
+    var node = event.target && event.target.closest && event.target.closest("[data-cowkoszyku-open-import]");
+    if (!node || node.disabled) return;
+    chrome.runtime.sendMessage({ type: "open-import", origin: location.origin }, function (response) {
+      var status = document.getElementById("open-status");
+      if (!status) return;
+      var failed = chrome.runtime.lastError;
+      if (failed || !response || !response.ok) {
+        status.textContent = "The helper could not open the import page. Reload the extension, then refresh.";
+      }
+    });
+  },
+  true
+);

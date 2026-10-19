@@ -1,11 +1,12 @@
 {
   "manifest_version": 3,
   "name": "cowkoszyku Biedronka",
-  "version": "1.0.3",
-  "description": "Catches Moja Biedronka app:// OAuth redirects and finishes sign-in on cowkoszyku /imports/biedronka.",
-  "permissions": ["webRequest", "webNavigation", "tabs"],
+  "version": "1.2.0",
+  "description": "Opens the Biedronka bill list and sends finished bills to cowkoszyku.",
+  "permissions": ["webRequest", "webNavigation", "tabs", "storage", "declarativeNetRequest", "declarativeNetRequestWithHostAccess"],
   "host_permissions": [
     "https://konto.biedronka.pl/*",
+    "https://api.prod.biedronka.cloud/*",
     "http://localhost:5173/*",
     "http://127.0.0.1:5173/*",
     "http://localhost:3000/*",
@@ -17,6 +18,15 @@
   ],
   "background": {
     "service_worker": "background.js"
+  },
+  "declarative_net_request": {
+    "rule_resources": [
+      {
+        "id": "biedronka_ua",
+        "enabled": true,
+        "path": "rules.json"
+      }
+    ]
   },
   "content_scripts": [
     {
