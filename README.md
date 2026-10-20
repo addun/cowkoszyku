@@ -39,7 +39,6 @@ Optional environment (read by the web app):
 | `WEB_HOST`        | `0.0.0.0`            | Listen host. The image maps this to SvelteKit `HOST`. |
 | `WEB_PORT`        | `3000`               | Listen port. The image maps this to SvelteKit `PORT`. `pnpm dev` uses Vite on port 5173 instead. |
 | `API_ORIGIN`      | `http://api:8080`    | API base URL inside Docker. `pnpm dev` leaves this empty and calls `http://127.0.0.1:8080`. |
-| `ORIGIN`          |                      | Public site URL, such as `http://your_domain.com`. Form saves are rejected when this does not match the address in the browser. |
 | `BODY_SIZE_LIMIT` | `15M`                | Maximum request body accepted by the Node server. |
 
 The Svelte home page calls `GET /api/lookup.json`. Admin pages are Svelte routes (`/admin/products`, `/admin/stores`, and the rest) that call `/api/admin/...`. Receipt and product files are served from `/images/`. Receipt previews are `GET /api/admin/receipts/:id/preview`.
@@ -52,7 +51,7 @@ The Svelte home page calls `GET /api/lookup.json`. Admin pages are Svelte routes
 docker compose up --build
 ```
 
-Compose publishes the Svelte app on [http://localhost:3000](http://localhost:3000) and the API on [http://localhost:8080](http://localhost:8080). Both containers read the repo root `.env`. The API listens on `API_HOST`:`API_PORT`. The web app listens on `WEB_HOST`:`WEB_PORT` and forwards `/api`, images, and MCP to `API_ORIGIN`. `ORIGIN` is the public site URL; form saves are rejected when it does not match the address in the browser. Data (SQLite + product photos) lives in the `cowkoszyku-data` volume.
+Compose publishes the Svelte app on [http://localhost:3000](http://localhost:3000) and the API on [http://localhost:8080](http://localhost:8080). Both containers read the repo root `.env`. The API listens on `API_HOST`:`API_PORT`. The web app listens on `WEB_HOST`:`WEB_PORT` and forwards `/api`, images, and MCP to `API_ORIGIN`. Data (SQLite + product photos) lives in the `cowkoszyku-data` volume.
 
 Published images from GitHub Releases go to the [GitHub Container Registry](https://ghcr.io) as `ghcr.io/<owner>/<repo>` (linux/amd64):
 
