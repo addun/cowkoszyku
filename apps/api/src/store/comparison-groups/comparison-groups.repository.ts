@@ -84,7 +84,7 @@ export class ComparisonGroupsRepository {
     return this.getComparisonGroup(id);
   }
 
-  updateComparisonGroup(id: number, name: string, unitId: number, productIds: number[]): void {
+  updateComparisonGroup(id: number, name: string, unitId: number, productIds?: number[]): void {
     try {
       this.units.getUnit(unitId);
     } catch (err) {
@@ -102,7 +102,7 @@ export class ComparisonGroupsRepository {
         if (isUniqueErr(err)) throw new DuplicateError('A group with that name already exists.');
         throw err;
       }
-      this.setComparisonGroupProducts(id, productIds);
+      if (productIds !== undefined) this.setComparisonGroupProducts(id, productIds);
     });
   }
 
@@ -119,6 +119,45 @@ export class ComparisonGroupsRepository {
       .orderBy(comparisonGroupProducts.productId)
       .all()
       .map((r) => r.productId);
+  }
+
+  listComparisonGroupMembers(groupId: number): { id: number; name: string; unitName: string }[] {
+    return this.orm
+      .select({
+        id: products.id,
+        name: products.name,
+        unitName: units.name,
+      })
+      .from(comparisonGroupProducts)
+      .innerJoin(products, eq(products.id, comparisonGroupProducts.productId))
+      .innerJoin(units, eq(units.id, products.unitId))
+      .where(eq(comparisonGroupProducts.groupId, groupId))
+      .orderBy(nocaseOrder(products.name), products.id)
+      .all();
+  }
+
+  addComparisonGroupProducts(groupId: number, productIds: number[]): void {
+    this.getComparisonGroup(groupId);
+    const ids = this.uniquePositiveIDs(productIds);
+    if (ids.length === 0) return;
+    this.db.immediate(() => {
+      for (const id of ids) this.requireProduct(id);
+      for (const id of ids) {
+        this.orm
+          .insert(comparisonGroupProducts)
+          .values({ groupId, productId: id })
+          .onConflictDoNothing()
+          .run();
+      }
+    });
+  }
+
+  removeComparisonGroupProduct(groupId: number, productId: number): void {
+    this.getComparisonGroup(groupId);
+    this.orm
+      .delete(comparisonGroupProducts)
+      .where(and(eq(comparisonGroupProducts.groupId, groupId), eq(comparisonGroupProducts.productId, productId)))
+      .run();
   }
 
   listComparisonGroupsForProduct(productId: number): ComparisonGroup[] {

@@ -41,7 +41,9 @@
       {#each groups as group (text(obj(group).id))}
         {@const row = obj(group)}
         <Table.Row>
-          <Table.Cell class="font-medium">{text(row.name)}</Table.Cell>
+          <Table.Cell class="font-medium">
+            <a class="hover:underline" href="/admin/comparison-groups/{row.id}/edit">{text(row.name)}</a>
+          </Table.Cell>
           <Table.Cell>{text(row.unitName)}</Table.Cell>
           <Table.Cell>{countLabel(Number(row.productCount) || 0, 'product', 'products')}</Table.Cell>
           <Table.Cell class="text-right">

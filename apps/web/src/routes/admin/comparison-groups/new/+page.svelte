@@ -6,4 +6,4 @@
 <svelte:head><title>Add comparison group · cowkoszyku</title></svelte:head>
 
 <Notice message={form?.message} />
-<ComparisonGroupForm creating group={form?.group ?? data.group} units={form?.units ?? data.units} products={form?.products ?? data.products} />
+<ComparisonGroupForm creating group={form?.group ?? data.group} units={form?.units ?? data.units} products={data.products} />

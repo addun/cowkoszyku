@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
 import type { z } from 'zod';
-import { ComparisonGroupRequest, Id } from './contract/request.js';
+import { ComparisonGroupProductsRequest, ComparisonGroupRequest, Id } from './contract/request.js';
 import {
   type AdminComparisonGroupDeletedResponse,
   type AdminComparisonGroupFormResponse,
@@ -39,6 +39,22 @@ export class AdminGroupsController {
     @Body({ schema: ComparisonGroupRequest }) body: z.infer<typeof ComparisonGroupRequest>,
   ): AdminComparisonGroupResponse {
     return this.handler.update(groupId, body);
+  }
+
+  @Post('/api/admin/comparison-groups/:id/products')
+  addProducts(
+    @Param('id', { schema: Id }) groupId: number,
+    @Body({ schema: ComparisonGroupProductsRequest }) body: z.infer<typeof ComparisonGroupProductsRequest>,
+  ): AdminComparisonGroupResponse {
+    return this.handler.addProducts(groupId, body.product_id);
+  }
+
+  @Delete('/api/admin/comparison-groups/:id/products/:productId')
+  removeProduct(
+    @Param('id', { schema: Id }) groupId: number,
+    @Param('productId', { schema: Id }) productId: number,
+  ): AdminComparisonGroupResponse {
+    return this.handler.removeProduct(groupId, productId);
   }
 
   @Delete('/api/admin/comparison-groups/:id')
