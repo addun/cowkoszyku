@@ -1,6 +1,6 @@
 <script lang="ts">
   import { Button } from '$lib/components/ui/button/index.js';
-  import { Checkbox } from '$lib/components/ui/checkbox/index.js';
+  import * as Empty from '$lib/components/ui/empty/index.js';
   import * as Field from '$lib/components/ui/field/index.js';
   import { Input } from '$lib/components/ui/input/index.js';
   import * as NativeSelect from '$lib/components/ui/native-select/index.js';
@@ -12,10 +12,7 @@
   const group = $derived(obj(view.group));
   const units = $derived(arr(view.units));
   const products = $derived(arr(view.products));
-  const action = $derived(isNew ? '/admin/comparison-groups/new' : `/admin/comparison-groups/${text(group.id)}/edit`);
-  let selected = $state<Record<string, boolean>>(
-    Object.fromEntries(arr(view.products).map((row) => [text(obj(row).id), obj(row).selected === true])),
-  );
+  const action = $derived(isNew ? '/admin/comparison-groups/new' : '?/save');
 </script>
 
 <h1 class="text-2xl font-semibold tracking-tight">{isNew ? 'Add comparison group' : 'Edit comparison group'}</h1>
@@ -40,27 +37,42 @@
       </Field.Field>
     </Field.Set>
 
-    <Field.Set>
-      <Field.Legend>Products</Field.Legend>
-      {#if products.length === 0}
-        <Field.Description>No products yet. <a href="/admin/products/new">Add a product</a> first.</Field.Description>
-      {:else}
-        <div class="flex flex-col gap-3">
-          {#each products as product (text(obj(product).id))}
-            {@const row = obj(product)}
-            {@const id = text(row.id)}
-            <Field.Field orientation="horizontal">
-              <Checkbox id="product-{id}" name="product_id" value={id} bind:checked={selected[id]} />
-              <Field.Label for="product-{id}">{text(row.name)} <span class="text-muted-foreground">{text(row.unitName)}</span></Field.Label>
-            </Field.Field>
-          {/each}
-        </div>
-      {/if}
-    </Field.Set>
-
     <div class="flex flex-wrap items-center gap-2">
       <Button type="submit">{isNew ? 'Add group' : 'Save group'}</Button>
       <Button variant="outline" href="/admin/comparison-groups">Cancel</Button>
     </div>
   </Field.Group>
 </form>
+
+{#if !isNew}
+  <section class="mt-8 flex flex-col gap-3">
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <h2 class="text-lg font-semibold tracking-tight">Products</h2>
+      <Button href="/admin/comparison-groups/{group.id}/products">Add products</Button>
+    </div>
+    {#if products.length === 0}
+      <Empty.Root class="border">
+        <Empty.Header>
+          <Empty.Title>No products in this group yet.</Empty.Title>
+          <Empty.Description>Add products from the catalog. The list is searched, so you don’t have to scroll the whole catalog.</Empty.Description>
+        </Empty.Header>
+      </Empty.Root>
+    {:else}
+      <ul class="divide-y overflow-hidden rounded-xl border">
+        {#each products as product (text(obj(product).id))}
+          {@const row = obj(product)}
+          <li class="flex items-center gap-3 px-3 py-2">
+            <a class="min-w-0 flex-1 hover:underline" href="/admin/products/{row.id}">
+              <span class="block truncate font-medium">{text(row.name)}</span>
+              <span class="text-muted-foreground block text-sm">{text(row.unitName)}</span>
+            </a>
+            <form method="post" action="?/remove">
+              <input type="hidden" name="product_id" value={text(row.id)} />
+              <Button type="submit" variant="ghost" size="sm">Remove</Button>
+            </form>
+          </li>
+        {/each}
+      </ul>
+    {/if}
+  </section>
+{/if}

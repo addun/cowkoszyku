@@ -300,6 +300,11 @@ function runStoreSmoke(): void {
     if (group.productCount !== 1) throw new Error('group count');
     const rice = repos.products.createProduct('Ryz', kg.id, null);
     repos.purchases.createPurchase(rice.id, store.id, '2026-01-20 12:00', new Decimal('1'), new Decimal('8'), KIND_PURCHASE);
+    repos.groups.addComparisonGroupProducts(group.id, [rice.id, flour.id]);
+    const added = repos.groups.listComparisonGroupMembers(group.id);
+    if (added.length !== 2 || added[0]!.id !== flour.id || added[1]!.id !== rice.id) throw new Error('group members');
+    repos.groups.removeComparisonGroupProduct(group.id, rice.id);
+    if (repos.groups.listComparisonGroupProductIDs(group.id).join(',') !== String(flour.id)) throw new Error('group remove member');
     const firstPage = repos.products.listProductsPage('', 0, 1);
     const secondPage = repos.products.listProductsPage('', 1, 1);
     if (firstPage.total !== 2 || firstPage.items.length !== 1 || secondPage.items.length !== 1) {

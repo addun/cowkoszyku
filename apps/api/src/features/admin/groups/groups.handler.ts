@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import type { z } from 'zod';
 import { ComparisonGroupsRepository } from '#app/store/comparison-groups';
-import { ProductsRepository } from '#app/store/products';
 import { UnitsRepository } from '#app/store/units';
 import { type ComparisonGroupRequest } from './contract/request.js';
 import {
@@ -16,7 +15,6 @@ export class AdminGroupsHandler {
   constructor(
     private readonly groups: ComparisonGroupsRepository,
     private readonly units: UnitsRepository,
-    private readonly products: ProductsRepository,
   ) {}
 
   list(): AdminComparisonGroupsResponse {
@@ -24,23 +22,33 @@ export class AdminGroupsHandler {
   }
 
   blank(): AdminComparisonGroupFormResponse {
-    return this.form({ id: 0, name: '', unitId: 0, unitName: '', createdAt: '', productCount: 0 }, []);
+    return this.form({ id: 0, name: '', unitId: 0, unitName: '', createdAt: '', productCount: 0 });
   }
 
   get(groupId: number): AdminComparisonGroupFormResponse {
     const group = this.groups.getComparisonGroup(groupId);
-    return this.form(group, this.groups.listComparisonGroupProductIDs(groupId));
+    return this.form(group);
   }
 
   create(body: z.infer<typeof ComparisonGroupRequest>): AdminComparisonGroupResponse {
     return AdminComparisonGroupResponse.parse(
-      this.groups.createComparisonGroup(body.name, body.unit_id, body.product_id),
+      this.groups.createComparisonGroup(body.name, body.unit_id, body.product_id ?? []),
     );
   }
 
   update(groupId: number, body: z.infer<typeof ComparisonGroupRequest>): AdminComparisonGroupResponse {
     this.groups.getComparisonGroup(groupId);
     this.groups.updateComparisonGroup(groupId, body.name, body.unit_id, body.product_id);
+    return AdminComparisonGroupResponse.parse(this.groups.getComparisonGroup(groupId));
+  }
+
+  addProducts(groupId: number, productIds: number[]): AdminComparisonGroupResponse {
+    this.groups.addComparisonGroupProducts(groupId, productIds);
+    return AdminComparisonGroupResponse.parse(this.groups.getComparisonGroup(groupId));
+  }
+
+  removeProduct(groupId: number, productId: number): AdminComparisonGroupResponse {
+    this.groups.removeComparisonGroupProduct(groupId, productId);
     return AdminComparisonGroupResponse.parse(this.groups.getComparisonGroup(groupId));
   }
 
@@ -52,13 +60,11 @@ export class AdminGroupsHandler {
 
   private form(
     group: { id: number; name: string; unitId: number; unitName: string; createdAt: string; productCount: number },
-    selected: number[],
   ): AdminComparisonGroupFormResponse {
-    const set = new Set(selected);
     return AdminComparisonGroupFormResponse.parse({
       group,
       units: this.units.listUnits(),
-      products: this.products.listProducts('').map((product) => ({ ...product, selected: set.has(product.id) })),
+      products: group.id ? this.groups.listComparisonGroupMembers(group.id) : [],
     });
   }
 }
