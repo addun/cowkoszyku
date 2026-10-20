@@ -35,9 +35,9 @@
   let hasFile = $state(Boolean(text(initial.imagePath)));
   let heldPhoto: File | null = null;
   let photoInput = $state<HTMLInputElement | null>(null);
-  let photoImg = $state<HTMLImageElement | null>(null);
   let photoWrap = $state<HTMLDivElement | null>(null);
   let clearPhoto = $state(false);
+  let previewUrl = $state(text(initial.imagePath) ? `/images/${text(initial.imagePath)}` : '');
 
   const unitName = $derived.by(() => {
     if (!isNew && text(product.unitName)) return text(product.unitName);
@@ -55,9 +55,8 @@
 
   function showPhoto(file: File) {
     heldPhoto = file;
-    if (photoImg) {
-      photoImg.src = URL.createObjectURL(file);
-    }
+    if (previewUrl.startsWith('blob:')) URL.revokeObjectURL(previewUrl);
+    previewUrl = URL.createObjectURL(file);
     hasFile = true;
     clearPhoto = false;
   }
@@ -185,12 +184,12 @@
     <div class="flex flex-col gap-3 rounded-xl border border-dashed p-4" class:bg-muted={hasFile} bind:this={photoWrap}>
       <Field.Field>
         <Field.Label for="product-image">Photo</Field.Label>
-        <Input id="product-image" name="image" type="file" accept="image/*" bind:this={photoInput} />
+        <Input id="product-image" name="image" type="file" accept="image/*" bind:ref={photoInput} />
         <Field.Description>Paste or drop a jpeg, png, webp, or gif.</Field.Description>
       </Field.Field>
       <Button type="button" variant="outline" class="w-fit" onclick={pastePhoto}>Paste</Button>
       <div class="flex items-center gap-3">
-        <img class="bg-muted size-16 rounded-lg object-cover" alt="" bind:this={photoImg} src={imagePath ? `/images/${imagePath}` : undefined} />
+        <img class="bg-muted size-16 rounded-lg object-cover" alt="" src={previewUrl || undefined} />
         {#if !isNew && imagePath}
           <Field.Field orientation="horizontal">
             <Checkbox id="clear-image" name="clear_image" value="1" bind:checked={clearPhoto} />
