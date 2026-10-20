@@ -133,11 +133,11 @@
       <p class="text-muted-foreground text-sm">Paste, drop, take a photo, or choose one. jpeg, png, webp, gif or pdf, up to 10 MB.</p>
       <Field.Field>
         <Field.Label for="bill-camera">Take photo</Field.Label>
-        <Input id="bill-camera" name="bill_camera" type="file" accept="image/*" capture="environment" bind:this={camera} />
+        <Input id="bill-camera" name="bill_camera" type="file" accept="image/*" capture="environment" bind:ref={camera} />
       </Field.Field>
       <Field.Field>
         <Field.Label for="bill">Choose file</Field.Label>
-        <Input id="bill" name="bill" type="file" accept="image/*,.pdf,application/pdf" bind:this={file} />
+        <Input id="bill" name="bill" type="file" accept="image/*,.pdf,application/pdf" bind:ref={file} />
       </Field.Field>
       <Button type="button" variant="outline" class="w-fit" onclick={pasteBill}>Paste</Button>
       {#if pickedName}
