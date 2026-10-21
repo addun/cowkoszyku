@@ -1,0 +1,35 @@
+{
+  "name": "@cowkoszyku/contract",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Request and response schemas shared by the API and the web app",
+  "exports": {
+    "./admin/*/request": {
+      "types": "./dist/admin/*/request.d.ts",
+      "default": "./dist/admin/*/request.js"
+    },
+    "./admin/*/response": {
+      "types": "./dist/admin/*/response.d.ts",
+      "default": "./dist/admin/*/response.js"
+    },
+    "./admin/*": {
+      "types": "./dist/admin/*/index.d.ts",
+      "default": "./dist/admin/*/index.js"
+    },
+    "./*": {
+      "types": "./dist/*.d.ts",
+      "default": "./dist/*.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "decimal.js": "10.6.0",
+    "zod": "4.6.2"
+  },
+  "devDependencies": {
+    "typescript": "6.0.3"
+  }
+}

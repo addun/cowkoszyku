@@ -9,10 +9,7 @@ export type ProductAlias = {
   alias: string;
 };
 
-/** OCR till names gain or lose spaces; aliases are stored without whitespace. */
-export function stripAliasWhitespace(alias: string): string {
-  return alias.replace(/\s+/gu, '');
-}
+export { stripAliasWhitespace } from '@cowkoszyku/contract/admin/aliases';
 
 export function aliasScopeValue(a: ProductAlias): string {
   if (a.storeId) return `store:${a.storeId}`;

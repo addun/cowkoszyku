@@ -1,7 +1,11 @@
 import { z } from 'zod';
-import { stripAliasWhitespace } from '#app/store/aliases';
 
-export const Id = z.coerce.number().int().positive();
+/** OCR till names gain or lose spaces; aliases are stored without whitespace. */
+export function stripAliasWhitespace(alias: string): string {
+  return alias.replace(/\s+/gu, '');
+}
+
+export const AliasId = z.coerce.number().int().positive();
 
 export const ProductRefRequest = z.object({
   product: z.coerce.number().int().nonnegative().default(0),

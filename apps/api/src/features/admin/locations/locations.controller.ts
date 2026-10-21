@@ -1,7 +1,12 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from '@nestjs/common';
 import type { z } from 'zod';
-import { Id, NewStoreRequest, RetailChainRequest, StoreMergeRequest, StoreRequest } from './contract/request.js';
 import {
+  RetailChainId,
+  StoreId,
+  NewStoreRequest,
+  RetailChainRequest,
+  StoreMergeRequest,
+  StoreRequest,
   type AdminChainResponse,
   type AdminChainsResponse,
   type AdminCreatedStoreResponse,
@@ -13,7 +18,7 @@ import {
   type AdminStoreMergedResponse,
   type AdminStoreResponse,
   type AdminStoresResponse,
-} from './contract/response.js';
+} from '@cowkoszyku/contract/admin/locations';
 import { AdminLocationsHandler } from './locations.handler.js';
 
 @Controller()
@@ -26,7 +31,7 @@ export class AdminLocationsController {
   }
 
   @Get('/api/admin/retail-chains/:id')
-  chain(@Param('id', { schema: Id }) chainId: number): AdminChainResponse {
+  chain(@Param('id', { schema: RetailChainId }) chainId: number): AdminChainResponse {
     return this.handler.chain(chainId);
   }
 
@@ -37,14 +42,14 @@ export class AdminLocationsController {
 
   @Patch('/api/admin/retail-chains/:id')
   updateChain(
-    @Param('id', { schema: Id }) chainId: number,
+    @Param('id', { schema: RetailChainId }) chainId: number,
     @Body({ schema: RetailChainRequest }) body: z.infer<typeof RetailChainRequest>,
   ): AdminChainResponse {
     return this.handler.updateChain(chainId, body);
   }
 
   @Delete('/api/admin/retail-chains/:id')
-  removeChain(@Param('id', { schema: Id }) chainId: number): AdminOkResponse {
+  removeChain(@Param('id', { schema: RetailChainId }) chainId: number): AdminOkResponse {
     return this.handler.removeChain(chainId);
   }
 
@@ -59,7 +64,7 @@ export class AdminLocationsController {
   }
 
   @Get('/api/admin/stores/:id')
-  store(@Param('id', { schema: Id }) storeId: number): AdminStoreFormResponse {
+  store(@Param('id', { schema: StoreId }) storeId: number): AdminStoreFormResponse {
     return this.handler.store(storeId);
   }
 
@@ -70,33 +75,33 @@ export class AdminLocationsController {
 
   @Patch('/api/admin/stores/:id')
   updateStore(
-    @Param('id', { schema: Id }) storeId: number,
+    @Param('id', { schema: StoreId }) storeId: number,
     @Body({ schema: StoreRequest }) body: z.infer<typeof StoreRequest>,
   ): AdminStoreResponse {
     return this.handler.updateStore(storeId, body);
   }
 
   @Delete('/api/admin/stores/:id')
-  removeStore(@Param('id', { schema: Id }) storeId: number): AdminOkResponse {
+  removeStore(@Param('id', { schema: StoreId }) storeId: number): AdminOkResponse {
     return this.handler.removeStore(storeId);
   }
 
   @Get('/api/admin/stores/:id/merge')
-  mergeOptions(@Param('id', { schema: Id }) storeId: number): AdminStoreMergeOptionsResponse {
+  mergeOptions(@Param('id', { schema: StoreId }) storeId: number): AdminStoreMergeOptionsResponse {
     return this.handler.mergeOptions(storeId);
   }
 
   @Get('/api/admin/stores/:id/merge/:into')
   mergePlan(
-    @Param('id', { schema: Id }) storeId: number,
-    @Param('into', { schema: Id }) intoId: number,
+    @Param('id', { schema: StoreId }) storeId: number,
+    @Param('into', { schema: StoreId }) intoId: number,
   ): AdminStoreMergePlanResponse {
     return this.handler.mergePlan(storeId, intoId);
   }
 
   @Post('/api/admin/stores/:id/merge')
   merge(
-    @Param('id', { schema: Id }) storeId: number,
+    @Param('id', { schema: StoreId }) storeId: number,
     @Body({ schema: StoreMergeRequest }) body: z.infer<typeof StoreMergeRequest>,
   ): AdminStoreMergedResponse {
     return this.handler.merge(storeId, body);

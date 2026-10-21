@@ -1,4 +1,4 @@
-import type { AdminProductResponse, AdminProductsResponse } from '../../../../../api/src/features/admin/products/contract/response';
+import type { AdminProductResponse, AdminProductsResponse } from '@cowkoszyku/contract/admin/products';
 
 const LIMIT = 40;
 

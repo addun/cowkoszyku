@@ -1,7 +1,7 @@
 import { z } from 'zod';
-import { decimalString } from '../../../../domain/decimal-string.js';
+import { decimalString } from '../../decimal-string.js';
 
-export const AdminReceiptListItemResponse = z.looseObject({
+export const AdminReceiptListItemResponse = z.object({
   id: z.number().int(),
   imagePath: z.string().nullable(),
   status: z.string(),
@@ -13,7 +13,7 @@ export const AdminReceiptListItemResponse = z.looseObject({
   displayDate: z.string(),
 });
 
-export const AdminReceiptResponse = z.looseObject({
+export const AdminReceiptResponse = z.object({
   id: z.number().int(),
   imagePath: z.string().nullable(),
   status: z.string(),
@@ -47,9 +47,45 @@ export const AdminReceiptIdResponse = z.object({
 });
 export type AdminReceiptIdResponse = z.infer<typeof AdminReceiptIdResponse>;
 
-const store = z.looseObject({
+const store = z.object({
   id: z.number().int(),
   name: z.string(),
+  label: z.string(),
+});
+
+const receiptLine = z.object({
+  include: z.boolean(),
+  productId: z.number().int(),
+  productName: z.string(),
+  unitId: z.number().int(),
+  quantity: z.string(),
+  amount: z.string(),
+  receiptName: z.string(),
+  vatType: z.string(),
+  unitPrice: z.string(),
+  discount: z.string(),
+  ean: z.string(),
+});
+
+const receiptView = z.object({
+  receiptId: z.number().int(),
+  imagePath: z.string(),
+  status: z.string(),
+  boughtOn: z.string(),
+  boughtAt: z.string(),
+  notes: z.string(),
+  storeId: z.number().int(),
+  storeName: z.string(),
+  externalId: z.string(),
+  streetName: z.string(),
+  buildingNumber: z.string(),
+  apartmentNumber: z.string(),
+  postalCode: z.string(),
+  city: z.string(),
+  lines: z.array(receiptLine),
+  migrated: z.boolean(),
+  addressLine: z.string(),
+  createStoreUrl: z.string(),
 });
 
 export const AdminReceiptStatusResponse = z.object({
@@ -61,13 +97,14 @@ export const AdminReceiptShowResponse = z.object({
   kind: z.literal('show'),
   receipt: AdminReceiptResponse,
   purchases: z.array(
-    z.looseObject({
+    z.object({
       id: z.number().int(),
       productId: z.number().int(),
       quantity: decimalString,
       amount: decimalString,
       productName: z.string(),
       unitName: z.string(),
+      imagePath: z.string().nullable(),
     }),
   ),
   boughtOn: z.string(),
@@ -78,9 +115,9 @@ export const AdminReceiptShowResponse = z.object({
 
 export const AdminReceiptReviewResponse = z.object({
   kind: z.literal('review'),
-  view: z.looseObject({}),
-  products: z.array(z.looseObject({ id: z.number().int(), name: z.string() })),
-  units: z.array(z.looseObject({ id: z.number().int(), name: z.string() })),
+  view: receiptView,
+  products: z.array(z.object({ id: z.number().int(), name: z.string(), unitName: z.string() })),
+  units: z.array(z.object({ id: z.number().int(), name: z.string() })),
   stores: z.array(store),
   symbol: z.string(),
   currency: z.string(),

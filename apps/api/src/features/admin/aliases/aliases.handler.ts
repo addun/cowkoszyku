@@ -5,13 +5,13 @@ import { AliasesRepository, type ProductAlias } from '#app/store/aliases';
 import { LocationsRepository } from '#app/store/locations';
 import { ProductsRepository, type Product } from '#app/store/products';
 import { presentAlias, presentChain, presentStore } from '../../../web/present.js';
-import { type AliasRequest } from './contract/request.js';
 import {
+  type AliasRequest,
   AdminAliasDeletedResponse,
   AdminAliasFormResponse,
   AdminAliasResponse,
   AdminAliasesResponse,
-} from './contract/response.js';
+} from '@cowkoszyku/contract/admin/aliases';
 
 @Injectable()
 export class AdminAliasesHandler {

@@ -10,8 +10,7 @@ import { productAliases, products, purchases, units } from '../../../db/schema.j
 import { fromGrosze } from '../../../domain/money.js';
 import { quotesByProduct, type QuotedPrice } from '../../../domain/price-stats.js';
 import { KIND_PURCHASE, type Purchase, type PurchaseKind } from '../../../store/purchases/purchases.models.js';
-import { type GetAdminProductsRequest } from './contract/request.js';
-import { AdminProductsResponse } from './contract/response.js';
+import { type GetAdminProductsRequest, AdminProductsResponse } from '@cowkoszyku/contract/admin/products';
 import { DATABASE, type Database } from './database.js';
 
 const laterPurchase = alias(purchases, 'later_purchase');

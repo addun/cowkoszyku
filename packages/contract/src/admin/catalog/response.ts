@@ -1,7 +1,14 @@
 import { z } from 'zod';
-import { decimalString } from '../../../../domain/decimal-string.js';
+import { decimalString } from '../../decimal-string.js';
 
-export const AdminCatalogProductResponse = z.looseObject({
+const catalogConversion = z.object({
+  unitId: z.number().int(),
+  unitName: z.string(),
+  compareValue: decimalString,
+  factor: decimalString,
+});
+
+export const AdminCatalogProductResponse = z.object({
   id: z.number().int(),
   name: z.string(),
   ean: z.string(),
@@ -10,23 +17,25 @@ export const AdminCatalogProductResponse = z.looseObject({
   compareValue: decimalString,
   imagePath: z.string().nullable(),
   createdAt: z.string(),
+  conversions: z.array(catalogConversion),
 });
 export type AdminCatalogProductResponse = z.infer<typeof AdminCatalogProductResponse>;
 
-export const AdminCatalogUnitResponse = z.looseObject({
+export const AdminCatalogUnitResponse = z.object({
   id: z.number().int(),
   name: z.string(),
   compareValue: decimalString,
 });
 
-export const AdminCatalogGroupResponse = z.looseObject({
+export const AdminCatalogGroupResponse = z.object({
   id: z.number().int(),
   name: z.string(),
   unitId: z.number().int(),
   unitName: z.string(),
+  selected: z.boolean().optional(),
 });
 
-export const AdminCatalogPurchaseResponse = z.looseObject({
+export const AdminCatalogPurchaseResponse = z.object({
   id: z.number().int(),
   productId: z.number().int(),
   storeId: z.number().int().nullable(),
@@ -36,12 +45,14 @@ export const AdminCatalogPurchaseResponse = z.looseObject({
   quantity: decimalString,
   amount: decimalString,
   createdAt: z.string(),
+  isPrice: z.boolean().optional(),
 });
 export type AdminCatalogPurchaseResponse = z.infer<typeof AdminCatalogPurchaseResponse>;
 
-export const AdminCatalogStoreResponse = z.looseObject({
+export const AdminCatalogStoreResponse = z.object({
   id: z.number().int(),
   name: z.string(),
+  label: z.string(),
 });
 
 export const AdminCatalogBlankResponse = z.object({
@@ -83,7 +94,7 @@ export const AdminCatalogMergeOptionsResponse = z.object({
 export type AdminCatalogMergeOptionsResponse = z.infer<typeof AdminCatalogMergeOptionsResponse>;
 
 export const AdminCatalogMergePlanResponse = z.object({
-  plan: z.looseObject({
+  plan: z.object({
     into: AdminCatalogProductResponse,
     from: AdminCatalogProductResponse,
     history: z.number().int(),

@@ -4,8 +4,7 @@ import type { z } from 'zod';
 import { nocaseOrder } from '../../../db/query.js';
 import { settings, units } from '../../../db/schema.js';
 import { InvalidUnitError } from '../../../domain/errors.js';
-import { type UpdateAdminSettingsRequest } from './contract/request.js';
-import { AdminSettingsResponse } from './contract/response.js';
+import { type UpdateAdminSettingsRequest, AdminSettingsResponse } from '@cowkoszyku/contract/admin/settings';
 import { DATABASE, type Database } from './database.js';
 
 type SettingKey = 'ocr_model' | 'piece_unit_id' | 'weight_unit_id';

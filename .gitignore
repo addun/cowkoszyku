@@ -1,6 +1,9 @@
 /data
 /bulkly
 *.db
+*.db-shm
+*.db-wal
+extensions/biedronka/_metadata/
 *.exe
 .DS_Store
 .env

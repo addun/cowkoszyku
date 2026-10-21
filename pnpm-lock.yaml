@@ -10,6 +10,9 @@ importers:
 
   apps/api:
     dependencies:
+      '@cowkoszyku/contract':
+        specifier: workspace:*
+        version: link:../../packages/contract
       '@faker-js/faker':
         specifier: 9.9.0
         version: 9.9.0
@@ -94,6 +97,10 @@ importers:
         version: 6.0.3
 
   apps/web:
+    dependencies:
+      '@cowkoszyku/contract':
+        specifier: workspace:*
+        version: link:../../packages/contract
     devDependencies:
       '@fontsource-variable/inter':
         specifier: ^5.3.0
@@ -143,6 +150,19 @@ importers:
       vite:
         specifier: 8.3.1
         version: 8.3.1(@types/node@24.13.4)(jiti@2.7.0)
+
+  packages/contract:
+    dependencies:
+      decimal.js:
+        specifier: 10.6.0
+        version: 10.6.0
+      zod:
+        specifier: 4.6.2
+        version: 4.6.2
+    devDependencies:
+      typescript:
+        specifier: 6.0.3
+        version: 6.0.3
 
 packages:
 

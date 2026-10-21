@@ -1,7 +1,7 @@
 import { z } from 'zod';
-import { decimalString } from '../../../../domain/decimal-string.js';
+import { decimalString } from '../../decimal-string.js';
 
-export const AdminUnitResponse = z.looseObject({
+export const AdminUnitResponse = z.object({
   id: z.number().int(),
   name: z.string(),
   compareValue: decimalString,

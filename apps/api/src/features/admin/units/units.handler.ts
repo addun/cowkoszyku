@@ -3,8 +3,12 @@ import { Decimal } from 'decimal.js';
 import type { z } from 'zod';
 import { parseDecimal } from '../../../domain/format.js';
 import { UnitsRepository } from '#app/store/units';
-import { type UnitRequest } from './contract/request.js';
-import { AdminOkResponse, AdminUnitResponse, AdminUnitsResponse } from './contract/response.js';
+import {
+  type UnitRequest,
+  AdminOkResponse,
+  AdminUnitResponse,
+  AdminUnitsResponse,
+} from '@cowkoszyku/contract/admin/units';
 
 @Injectable()
 export class AdminUnitsHandler {
