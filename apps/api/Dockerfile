@@ -6,11 +6,14 @@ RUN corepack enable && corepack prepare pnpm@11.9.0 --activate
 WORKDIR /src
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml .npmrc ./
 COPY apps/api/package.json apps/api/.npmrc apps/api/
+COPY packages/contract/package.json packages/contract/
 RUN pnpm install --frozen-lockfile --filter api...
+COPY packages/contract packages/contract
 COPY apps/api apps/api
 RUN pnpm --filter api build \
  && pnpm --filter api deploy --prod --legacy /out \
- && cp -a apps/api/dist /out/dist
+ && cp -a apps/api/dist /out/dist \
+ && cp -a packages/contract/dist /out/node_modules/@cowkoszyku/contract/dist
 
 FROM node:22-alpine
 RUN apk add --no-cache ca-certificates tzdata poppler-utils

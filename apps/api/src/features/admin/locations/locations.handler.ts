@@ -7,8 +7,6 @@ import {
   type RetailChainRequest,
   type StoreMergeRequest,
   type StoreRequest,
-} from './contract/request.js';
-import {
   AdminChainResponse,
   AdminChainsResponse,
   AdminCreatedStoreResponse,
@@ -20,7 +18,7 @@ import {
   AdminStoreMergedResponse,
   AdminStoreResponse,
   AdminStoresResponse,
-} from './contract/response.js';
+} from '@cowkoszyku/contract/admin/locations';
 
 @Injectable()
 export class AdminLocationsHandler {

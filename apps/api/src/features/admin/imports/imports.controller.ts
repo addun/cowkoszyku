@@ -1,11 +1,11 @@
 import { Body, Controller, Get, Post } from '@nestjs/common';
 import type { z } from 'zod';
-import { BiedronkaShopsImportRequest } from './contract/request.js';
 import {
+  BiedronkaShopsImportRequest,
   type AdminBiedronkaImportedResponse,
   type AdminBiedronkaImportResponse,
   type AdminImportsResponse,
-} from './contract/response.js';
+} from '@cowkoszyku/contract/admin/imports';
 import { AdminImportsHandler } from './imports.handler.js';
 
 @Controller()

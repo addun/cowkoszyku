@@ -3,8 +3,10 @@ import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import type { Response } from 'express';
 import { memoryStorage } from 'multer';
 import type { z } from 'zod';
-import { Id, ReceiptFormRequest, ReceiptVisitRequest } from './contract/request.js';
 import {
+  ReceiptId,
+  ReceiptFormRequest,
+  ReceiptVisitRequest,
   type AdminReceiptConfirmedResponse,
   type AdminReceiptDeletedResponse,
   type AdminReceiptDetailResponse,
@@ -12,7 +14,7 @@ import {
   type AdminReceiptEditResponse,
   type AdminReceiptIdResponse,
   type AdminReceiptsResponse,
-} from './contract/response.js';
+} from '@cowkoszyku/contract/admin/receipts';
 import { AdminReceiptsHandler } from './receipts.handler.js';
 
 @Controller()
@@ -46,7 +48,7 @@ export class AdminReceiptsController {
   }
 
   @Get('/api/admin/receipts/:id/preview')
-  preview(@Param('id', { schema: Id }) receiptId: number, @Res() res: Response): void {
+  preview(@Param('id', { schema: ReceiptId }) receiptId: number, @Res() res: Response): void {
     const path = this.handler.previewPath(receiptId);
     if (!path) {
       res.status(404).end();
@@ -57,38 +59,38 @@ export class AdminReceiptsController {
   }
 
   @Get('/api/admin/receipts/:id')
-  show(@Param('id', { schema: Id }) receiptId: number): AdminReceiptDetailResponse {
+  show(@Param('id', { schema: ReceiptId }) receiptId: number): AdminReceiptDetailResponse {
     return this.handler.show(receiptId);
   }
 
   @Get('/api/admin/receipts/:id/edit')
-  edit(@Param('id', { schema: Id }) receiptId: number): AdminReceiptEditResponse {
+  edit(@Param('id', { schema: ReceiptId }) receiptId: number): AdminReceiptEditResponse {
     return this.handler.edit(receiptId);
   }
 
   @Patch('/api/admin/receipts/:id')
   updateVisit(
-    @Param('id', { schema: Id }) receiptId: number,
+    @Param('id', { schema: ReceiptId }) receiptId: number,
     @Body({ schema: ReceiptVisitRequest }) body: z.infer<typeof ReceiptVisitRequest>,
   ): AdminReceiptIdResponse {
     return this.handler.updateVisit(receiptId, body);
   }
 
   @Post('/api/admin/receipts/:id/retry')
-  retry(@Param('id', { schema: Id }) receiptId: number): Promise<AdminReceiptIdResponse> {
+  retry(@Param('id', { schema: ReceiptId }) receiptId: number): Promise<AdminReceiptIdResponse> {
     return this.handler.retry(receiptId);
   }
 
   @Post('/api/admin/receipts/:id/confirm')
   confirm(
-    @Param('id', { schema: Id }) receiptId: number,
+    @Param('id', { schema: ReceiptId }) receiptId: number,
     @Body({ schema: ReceiptFormRequest }) body: Record<string, string>,
   ): AdminReceiptConfirmedResponse {
     return this.handler.confirm(receiptId, body);
   }
 
   @Delete('/api/admin/receipts/:id')
-  remove(@Param('id', { schema: Id }) receiptId: number): Promise<AdminReceiptDeletedResponse> {
+  remove(@Param('id', { schema: ReceiptId }) receiptId: number): Promise<AdminReceiptDeletedResponse> {
     return this.handler.remove(receiptId);
   }
 }

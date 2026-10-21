@@ -4,12 +4,12 @@ import { NotFoundError } from '../../../domain/errors.js';
 import { fetchBiedronkaShops, importedShopsFromBiedronka } from '../../../imports/biedronka-shops.js';
 import { LocationsRepository, type RetailChain } from '#app/store/locations';
 import { presentChain } from '../../../web/present.js';
-import { type BiedronkaShopsImportRequest } from './contract/request.js';
 import {
+  type BiedronkaShopsImportRequest,
   AdminBiedronkaImportedResponse,
   AdminBiedronkaImportResponse,
   AdminImportsResponse,
-} from './contract/response.js';
+} from '@cowkoszyku/contract/admin/imports';
 
 @Injectable()
 export class AdminImportsHandler {

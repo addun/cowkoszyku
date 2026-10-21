@@ -1,7 +1,6 @@
 import { Body, Controller, Get, Patch } from '@nestjs/common';
 import type { z } from 'zod';
-import { UpdateAdminSettingsRequest } from './contract/request.js';
-import { type AdminSettingsResponse } from './contract/response.js';
+import { UpdateAdminSettingsRequest, type AdminSettingsResponse } from '@cowkoszyku/contract/admin/settings';
 import { AdminSettingsHandler } from './settings.handler.js';
 
 @Controller()

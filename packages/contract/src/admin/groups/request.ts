@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
-export const Id = z.coerce.number().int().positive();
+export const ComparisonGroupId = z.coerce.number().int().positive();
+export const ProductId = z.coerce.number().int().positive();
 
 export const ComparisonGroupRequest = z.object({
   name: z.string().trim().min(1, 'Name is required.'),

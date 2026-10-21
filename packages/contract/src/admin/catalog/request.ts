@@ -14,7 +14,8 @@ const formIds = z
   .optional()
   .transform((value) => (value == null ? [] : Array.isArray(value) ? value : [value]));
 
-export const Id = z.coerce.number().int().positive();
+export const ProductId = z.coerce.number().int().positive();
+export const PurchaseId = z.coerce.number().int().positive();
 
 export const ProductRequest = z.object({
   name: z.string().trim().min(1, 'Name is required.'),

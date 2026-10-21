@@ -13,7 +13,8 @@ const coord = (label: string, min: number, max: number) =>
     .max(max, `${label} must be a number between ${min} and ${max}.`)
     .nullable();
 
-export const Id = z.coerce.number().int().positive();
+export const RetailChainId = z.coerce.number().int().positive();
+export const StoreId = z.coerce.number().int().positive();
 
 export const NewStoreRequest = z
   .object({

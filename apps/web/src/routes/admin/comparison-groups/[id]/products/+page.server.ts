@@ -1,6 +1,6 @@
 import { redirect } from '@sveltejs/kit';
 import { apiGet, apiSend, formInts, formJson, rejected } from '$lib/admin/client';
-import type { AdminProductsResponse } from '../../../../../../../api/src/features/admin/products/contract/response';
+import type { AdminProductsResponse } from '@cowkoszyku/contract/admin/products';
 
 const LIMIT = 40;
 

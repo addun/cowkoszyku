@@ -2,13 +2,13 @@ import { Injectable } from '@nestjs/common';
 import type { z } from 'zod';
 import { ComparisonGroupsRepository } from '#app/store/comparison-groups';
 import { UnitsRepository } from '#app/store/units';
-import { type ComparisonGroupRequest } from './contract/request.js';
 import {
+  type ComparisonGroupRequest,
   AdminComparisonGroupDeletedResponse,
   AdminComparisonGroupFormResponse,
   AdminComparisonGroupResponse,
   AdminComparisonGroupsResponse,
-} from './contract/response.js';
+} from '@cowkoszyku/contract/admin/groups';
 
 @Injectable()
 export class AdminGroupsHandler {

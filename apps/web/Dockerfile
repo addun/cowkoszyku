@@ -6,9 +6,11 @@ WORKDIR /src
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml .npmrc ./
 COPY apps/web/package.json apps/web/
 COPY apps/api/package.json apps/api/.npmrc apps/api/
+COPY packages/contract/package.json packages/contract/
 RUN pnpm install --frozen-lockfile --filter web...
+COPY packages/contract packages/contract
 COPY apps/web apps/web
-RUN pnpm --filter web build
+RUN pnpm --filter @cowkoszyku/contract build && pnpm --filter web build
 
 FROM node:22-alpine
 WORKDIR /app

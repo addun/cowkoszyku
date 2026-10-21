@@ -1,8 +1,9 @@
 import { z } from 'zod';
 
-const chain = z.looseObject({
+const chain = z.object({
   id: z.number().int(),
   name: z.string(),
+  label: z.string(),
 });
 
 export const AdminImportsResponse = z.object({

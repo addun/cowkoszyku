@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export const Id = z.coerce.number().int().positive();
+export const ReceiptId = z.coerce.number().int().positive();
 
 export const ReceiptVisitRequest = z.object({
   bought_on: z.string().trim(),

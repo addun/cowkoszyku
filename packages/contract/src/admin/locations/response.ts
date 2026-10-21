@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export const AdminChainResponse = z.looseObject({
+export const AdminChainResponse = z.object({
   id: z.number().int(),
   name: z.string(),
   legalName: z.string(),
@@ -15,7 +15,7 @@ export const AdminChainsResponse = z.object({
 });
 export type AdminChainsResponse = z.infer<typeof AdminChainsResponse>;
 
-export const AdminStoreResponse = z.looseObject({
+export const AdminStoreResponse = z.object({
   id: z.number().int(),
   name: z.string(),
   streetName: z.string(),
@@ -63,7 +63,7 @@ export const AdminStoreMergeOptionsResponse = z.object({
 export type AdminStoreMergeOptionsResponse = z.infer<typeof AdminStoreMergeOptionsResponse>;
 
 export const AdminStoreMergePlanResponse = z.object({
-  plan: z.looseObject({
+  plan: z.object({
     into: AdminStoreResponse,
     from: AdminStoreResponse,
     history: z.number().int(),

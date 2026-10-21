@@ -11,8 +11,11 @@ import { KIND_PURCHASE, PurchasesRepository, type Purchase } from '#app/store/pu
 import { UnitsRepository } from '#app/store/units';
 import { ImagesService } from '../../../web/images.service.js';
 import { presentProduct, presentPurchase, presentStore, storesByID } from '../../../web/present.js';
-import { type MergeRequest, type ProductRequest, type PurchaseRequest, type UnitIdRequest } from './contract/request.js';
 import {
+  type MergeRequest,
+  type ProductRequest,
+  type PurchaseRequest,
+  type UnitIdRequest,
   AdminCatalogBlankResponse,
   AdminCatalogChangeUnitResponse,
   AdminCatalogIdResponse,
@@ -24,7 +27,7 @@ import {
   AdminCatalogPurchaseResponse,
   AdminCatalogPurchaseUpdatedResponse,
   AdminCatalogShowResponse,
-} from './contract/response.js';
+} from '@cowkoszyku/contract/admin/catalog';
 
 @Injectable()
 export class AdminCatalogHandler {

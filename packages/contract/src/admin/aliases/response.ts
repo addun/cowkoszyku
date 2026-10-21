@@ -1,11 +1,11 @@
 import { z } from 'zod';
 
-const product = z.looseObject({
+const product = z.object({
   id: z.number().int(),
   name: z.string(),
 });
 
-export const AdminAliasResponse = z.looseObject({
+export const AdminAliasResponse = z.object({
   id: z.number().int(),
   productId: z.number().int(),
   productName: z.string(),
@@ -28,8 +28,8 @@ export type AdminAliasesResponse = z.infer<typeof AdminAliasesResponse>;
 
 export const AdminAliasFormResponse = z.object({
   products: z.array(product),
-  stores: z.array(z.looseObject({ id: z.number().int(), name: z.string() })),
-  chains: z.array(z.looseObject({ id: z.number().int(), name: z.string() })),
+  stores: z.array(z.object({ id: z.number().int(), name: z.string(), label: z.string() })),
+  chains: z.array(z.object({ id: z.number().int(), name: z.string() })),
   alias: AdminAliasResponse,
   lockedProduct: product.nullable(),
   fromProduct: z.number().int(),

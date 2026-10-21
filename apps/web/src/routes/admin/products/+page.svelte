@@ -5,7 +5,7 @@
   import * as Empty from '$lib/components/ui/empty/index.js';
   import { Input } from '$lib/components/ui/input/index.js';
   import { formatBoughtOn, formatPrice } from '$lib/format';
-  import type { AdminProductResponse, AdminProductsResponse } from '../../../../../api/src/features/admin/products/contract/response';
+  import type { AdminProductResponse, AdminProductsResponse } from '@cowkoszyku/contract/admin/products';
 
   const LIMIT = 40;
 

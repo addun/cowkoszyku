@@ -38,8 +38,8 @@ import {
 } from '../../../web/receipt-form.js';
 import { ImagesService } from '../../../web/images.service.js';
 import { ReceiptImagesService } from '../../../web/receipt-images.js';
-import { type ReceiptVisitRequest } from './contract/request.js';
 import {
+  type ReceiptVisitRequest,
   AdminReceiptConfirmedResponse,
   AdminReceiptDeletedResponse,
   AdminReceiptDetailResponse,
@@ -47,7 +47,7 @@ import {
   AdminReceiptEditResponse,
   AdminReceiptIdResponse,
   AdminReceiptsResponse,
-} from './contract/response.js';
+} from '@cowkoszyku/contract/admin/receipts';
 
 @Injectable()
 export class AdminReceiptsHandler {

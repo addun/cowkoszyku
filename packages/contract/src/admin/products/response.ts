@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { decimalString } from '../../../../domain/decimal-string.js';
+import { decimalString } from '../../decimal-string.js';
 
 export const AdminProductResponse = z.object({
   id: z.number().int(),
