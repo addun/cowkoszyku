@@ -92,8 +92,9 @@ export class ReceiptsRepository {
     return mapReceipt(row);
   }
 
-  listReceipts(): ReceiptListItem[] {
-    return this.scanReceiptList().map((row) => ({
+  listReceipts(storeId = 0): ReceiptListItem[] {
+    const rows = storeId > 0 ? this.scanReceiptList().filter((row) => row.shopId === storeId) : this.scanReceiptList();
+    return rows.map((row) => ({
       id: row.id,
       imagePath: row.imagePath,
       status: row.status,

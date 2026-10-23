@@ -37,6 +37,8 @@ export type AdminStoreResponse = z.infer<typeof AdminStoreResponse>;
 
 export const AdminStoresResponse = z.object({
   stores: z.array(AdminStoreResponse),
+  offset: z.number().int().nonnegative().default(0),
+  limit: z.number().int().positive().default(40),
 });
 export type AdminStoresResponse = z.infer<typeof AdminStoresResponse>;
 

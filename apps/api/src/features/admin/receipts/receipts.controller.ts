@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Res, UploadedFiles, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Res, UploadedFiles, UseInterceptors } from '@nestjs/common';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import type { Response } from 'express';
 import { memoryStorage } from 'multer';
@@ -6,6 +6,7 @@ import type { z } from 'zod';
 import {
   ReceiptId,
   ReceiptFormRequest,
+  ReceiptsListRequest,
   ReceiptVisitRequest,
   type AdminReceiptConfirmedResponse,
   type AdminReceiptDeletedResponse,
@@ -22,8 +23,8 @@ export class AdminReceiptsController {
   constructor(private readonly handler: AdminReceiptsHandler) {}
 
   @Get('/api/admin/receipts')
-  list(): AdminReceiptsResponse {
-    return this.handler.list();
+  list(@Query({ schema: ReceiptsListRequest }) query: z.infer<typeof ReceiptsListRequest>): AdminReceiptsResponse {
+    return this.handler.list(query);
   }
 
   @Get('/api/admin/receipts/duplicates')

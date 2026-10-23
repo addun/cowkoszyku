@@ -7,6 +7,8 @@
   import { Input } from '$lib/components/ui/input/index.js';
   import * as NativeSelect from '$lib/components/ui/native-select/index.js';
   import { toDatetimeLocal } from '$lib/format';
+  import ProductPicker from '$lib/admin/ProductPicker.svelte';
+  import StorePicker from '$lib/admin/StorePicker.svelte';
   import { resourceView, arr, num, obj, text } from '$lib/admin/view';
 
   type Line = {
@@ -26,7 +28,6 @@
   let props = $props();
   const view = $derived(resourceView(props));
   const bill = $derived(obj(view.view));
-  const products = $derived(arr(view.products).map(obj));
   const units = $derived(arr(view.units).map(obj));
   const stores = $derived(arr(view.stores).map(obj));
   const symbol = $derived(text(view.page.symbol));
@@ -35,6 +36,7 @@
   const initial = obj(view.view);
   let boughtOn = $state(toDatetimeLocal(text(initial.boughtOn)));
   let storeId = $state(num(initial.storeId) ? text(initial.storeId) : '');
+  const selectedStore = $derived(stores.find((store) => text(store.id) === storeId));
   let lines = $state<Line[]>(
     arr(initial.lines).map((row) => {
       const line = obj(row);
@@ -54,9 +56,11 @@
     }),
   );
 
-  function choose(line: Line, value: string) {
-    line.productId = value === 'new' || value === '' ? 0 : Number(value);
+  function chooseProduct(line: Line, detail: { id: string; name: string }) {
+    const nextId = detail.id === 'new' || detail.id === '' ? 0 : Number(detail.id);
+    line.productId = nextId;
     line.unitId = 0;
+    if (nextId) line.productName = detail.name;
   }
 
   function addLine() {
@@ -118,16 +122,14 @@
           </Field.Field>
           <Field.Field>
             <Field.Label for="store">Store</Field.Label>
-            <NativeSelect.Root id="store" class="w-full" name="store_id" bind:value={storeId}>
-              <NativeSelect.Option value="">None</NativeSelect.Option>
-              {#each stores as store (text(store.id))}
-                <NativeSelect.Option value={text(store.id)}>{text(store.label)}</NativeSelect.Option>
-              {/each}
-            </NativeSelect.Root>
+            <StorePicker
+              id="store"
+              bind:value={storeId}
+              label={selectedStore ? text(selectedStore.label) : storeId ? text(bill.storeName) : ''}
+            />
           </Field.Field>
           {#if bill.addressLine}<Field.Description>Address on the bill: {text(bill.addressLine)}</Field.Description>{/if}
           {#if bill.createStoreUrl}<Button variant="outline" class="w-fit" href={text(bill.createStoreUrl)}>Create store</Button>{/if}
-          {#if stores.length === 0 && !bill.createStoreUrl}<Field.Description>No stores yet. You can still save, or <a href="/admin/stores/new">add a store</a> first.</Field.Description>{/if}
           <input type="hidden" name="store_name" value={text(bill.storeName)} />
           <input type="hidden" name="external_id" value={text(bill.externalId)} />
           <input type="hidden" name="street_name" value={text(bill.streetName)} />
@@ -158,18 +160,15 @@
             </Field.Field>
             <Field.Field>
               <Field.Label for="product-{index}">Product</Field.Label>
-              <NativeSelect.Root
+              <ProductPicker
                 id="product-{index}"
-                class="w-full"
                 name="product_choice_{index}"
                 value={line.productId ? String(line.productId) : 'new'}
-                onchange={(event) => choose(line, event.currentTarget.value)}
-              >
-                <NativeSelect.Option value="new">New product</NativeSelect.Option>
-                {#each products as product (text(product.id))}
-                  <NativeSelect.Option value={text(product.id)}>{text(product.name)} ({text(product.unitName)})</NativeSelect.Option>
-                {/each}
-              </NativeSelect.Root>
+                label={line.productId ? line.productName : ''}
+                emptyValue="new"
+                emptyOption="New product"
+                onSelect={(detail) => chooseProduct(line, detail)}
+              />
             </Field.Field>
             {#if line.productId === 0}
               <Field.Field>

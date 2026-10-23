@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { and, count, eq, ne, sql } from 'drizzle-orm';
+import { and, count, eq, ne, sql, type SQL } from 'drizzle-orm';
 import { DatabaseService } from '../../db/database.service.js';
 import { changesOf, countOf, emptyStr, lastId, nocaseEq, nocaseOrder } from '../../db/query.js';
 import { productAliases, products, retailChains, stores } from '../../db/schema.js';
@@ -42,6 +42,33 @@ export class AliasesRepository {
         productAliases.id,
       )
       .all();
+  }
+
+  listAliasesPage(opts: { productId: number; q: string; offset: number; limit: number }): ProductAlias[] {
+    const filters: SQL[] = [];
+    if (opts.productId > 0) filters.push(eq(productAliases.productId, opts.productId));
+    const term = stripAliasWhitespace(opts.q);
+    if (term !== '') filters.push(sql`${productAliases.alias} like ${`%${term}%`} collate nocase`);
+    const where = filters.length === 0 ? undefined : filters.length === 1 ? filters[0] : and(...filters);
+    const query = this.aliasQuery();
+    const filtered = where ? query.where(where) : query;
+    const ordered = opts.productId > 0
+      ? filtered.orderBy(
+          sql`${productAliases.storeId} is not null`,
+          sql`${productAliases.retailChainId} is not null`,
+          nocaseOrder(stores.name),
+          nocaseOrder(retailChains.name),
+          nocaseOrder(productAliases.alias),
+          productAliases.id,
+        )
+      : filtered.orderBy(
+          nocaseOrder(products.name),
+          nocaseOrder(stores.name),
+          nocaseOrder(retailChains.name),
+          nocaseOrder(productAliases.alias),
+          productAliases.id,
+        );
+    return ordered.limit(opts.limit).offset(opts.offset).all();
   }
 
   getAlias(id: number): ProductAlias {

@@ -5,6 +5,7 @@ import {
   StoreId,
   NewStoreRequest,
   RetailChainRequest,
+  StoresListRequest,
   StoreMergeRequest,
   StoreRequest,
   type AdminChainResponse,
@@ -54,8 +55,8 @@ export class AdminLocationsController {
   }
 
   @Get('/api/admin/stores')
-  stores(): AdminStoresResponse {
-    return this.handler.stores();
+  stores(@Query({ schema: StoresListRequest }) query: z.infer<typeof StoresListRequest>): AdminStoresResponse {
+    return this.handler.stores(query);
   }
 
   @Get('/api/admin/stores/new')

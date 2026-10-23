@@ -3,6 +3,8 @@
   import * as Field from '$lib/components/ui/field/index.js';
   import { Input } from '$lib/components/ui/input/index.js';
   import * as NativeSelect from '$lib/components/ui/native-select/index.js';
+  import ProductPicker from '$lib/admin/ProductPicker.svelte';
+  import StorePicker from '$lib/admin/StorePicker.svelte';
   import { resourceView, arr, flag, num, obj, text } from '$lib/admin/view';
 
   let props = $props();
@@ -11,10 +13,16 @@
   const alias = $derived(obj(view.alias));
   const locked = $derived(obj(view.lockedProduct));
   const hasLocked = $derived(isNew && num(locked.id) > 0);
-  const products = $derived(arr(view.products));
   const chains = $derived(arr(view.chains));
-  const stores = $derived(arr(view.stores));
   const action = $derived(isNew ? '/admin/aliases/new' : `/admin/aliases/${text(alias.id)}/edit`);
+  const initialScope = text(alias.scopeValue);
+  let chainScope = $state(initialScope.startsWith('chain:') ? initialScope : '');
+  let storeId = $state(initialScope.startsWith('store:') ? initialScope.slice('store:'.length) : '');
+  let productId = $state(num(alias.productId) ? text(alias.productId) : '');
+
+  $effect(() => {
+    if (storeId) chainScope = '';
+  });
 </script>
 
 <h1 class="text-2xl font-semibold tracking-tight">{isNew ? 'Add alias' : 'Edit alias'}</h1>
@@ -29,18 +37,21 @@
       {:else}
         <Field.Field>
           <Field.Label for="product">Product <span class="text-destructive">*</span></Field.Label>
-          <NativeSelect.Root id="product" class="w-full" name="product_id" required value={text(alias.productId)}>
-            <NativeSelect.Option value="">Select…</NativeSelect.Option>
-            {#each products as product (text(obj(product).id))}
-              {@const row = obj(product)}
-              <NativeSelect.Option value={text(row.id)}>{text(row.name)}</NativeSelect.Option>
-            {/each}
-          </NativeSelect.Root>
+          <ProductPicker id="product" bind:value={productId} allowEmpty={false} label={productId ? text(alias.productName) : ''} />
         </Field.Field>
       {/if}
       <Field.Field>
         <Field.Label for="scope">Scope</Field.Label>
-        <NativeSelect.Root id="scope" class="w-full" name="scope" value={text(alias.scopeValue)}>
+        <input type="hidden" name="scope" value={storeId ? `store:${storeId}` : chainScope} />
+        <NativeSelect.Root
+          id="scope"
+          class="w-full"
+          bind:value={chainScope}
+          onchange={(event) => {
+            const next = event.currentTarget instanceof HTMLSelectElement ? event.currentTarget.value : '';
+            if (next.startsWith('chain:')) storeId = '';
+          }}
+        >
           <NativeSelect.Option value="">Any shop</NativeSelect.Option>
           {#if chains.length > 0}
             <NativeSelect.OptGroup label="Retail chains">
@@ -50,15 +61,11 @@
               {/each}
             </NativeSelect.OptGroup>
           {/if}
-          {#if stores.length > 0}
-            <NativeSelect.OptGroup label="Stores">
-              {#each stores as store (text(obj(store).id))}
-                {@const row = obj(store)}
-                <NativeSelect.Option value="store:{row.id}">{text(row.label)}</NativeSelect.Option>
-              {/each}
-            </NativeSelect.OptGroup>
-          {/if}
         </NativeSelect.Root>
+      </Field.Field>
+      <Field.Field>
+        <Field.Label for="store">Store</Field.Label>
+        <StorePicker id="store" name="" bind:value={storeId} label={storeId ? text(alias.storeName) : ''} />
       </Field.Field>
     </Field.Set>
     <Field.Set>
@@ -68,9 +75,6 @@
         <Input id="alias" name="alias" required value={text(alias.alias)} autofocus />
       </Field.Field>
     </Field.Set>
-    {#if products.length === 0}
-      <Field.Description>No products yet. <a href="/admin/products/new">Add a product</a> first.</Field.Description>
-    {/if}
     <div class="flex flex-wrap items-center gap-2">
       <Button type="submit">{isNew ? 'Add alias' : 'Save alias'}</Button>
       <Button variant="outline" href={text(view.cancel) || '/admin/aliases'}>Cancel</Button>

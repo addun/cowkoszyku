@@ -1,5 +1,10 @@
 import { apiGet } from '$lib/admin/client';
+import type { AdminStoresResponse } from '@cowkoszyku/contract/admin/locations';
+
+const LIMIT = 40;
+
 export const load = async ({ url }) => {
-  const body = await apiGet<{ stores: unknown[] }>('/api/admin/stores');
+  const params = new URLSearchParams({ offset: '0', limit: String(LIMIT) });
+  const body = await apiGet<AdminStoresResponse>(`/api/admin/stores?${params}`);
   return { stores: body.stores, error: url.searchParams.get('error') ?? '' };
 };

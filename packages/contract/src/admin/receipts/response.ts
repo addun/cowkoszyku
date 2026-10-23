@@ -26,6 +26,8 @@ export const AdminReceiptResponse = z.object({
 export const AdminReceiptsResponse = z.object({
   configured: z.boolean(),
   model: z.string(),
+  store: z.number().int().nonnegative().default(0),
+  storeName: z.string().default(''),
   receipts: z.array(AdminReceiptListItemResponse),
 });
 export type AdminReceiptsResponse = z.infer<typeof AdminReceiptsResponse>;

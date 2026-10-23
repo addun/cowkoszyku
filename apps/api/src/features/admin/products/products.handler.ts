@@ -6,7 +6,7 @@ import { and, desc, eq, exists, gte, gt, inArray, like, notExists, or, sql } fro
 import { alias } from 'drizzle-orm/sqlite-core';
 import type { z } from 'zod';
 import { nocaseOrder } from '../../../db/query.js';
-import { productAliases, products, purchases, units } from '../../../db/schema.js';
+import { productAliases, productUnitConversions, products, purchases, units } from '../../../db/schema.js';
 import { fromGrosze } from '../../../domain/money.js';
 import { quotesByProduct, type QuotedPrice } from '../../../domain/price-stats.js';
 import { KIND_PURCHASE, type Purchase, type PurchaseKind } from '../../../store/purchases/purchases.models.js';
@@ -23,7 +23,7 @@ export class AdminProductsHandler {
   ) { }
 
   list(query: z.infer<typeof GetAdminProductsRequest>): AdminProductsResponse {
-    const whereStatement = this.getWhereStatement(query.q);
+    const whereStatement = this.getWhereStatement(query.q, query.unit);
 
     const rows = this.database
       .select({
@@ -50,6 +50,8 @@ export class AdminProductsHandler {
       offset: query.offset,
       limit: query.limit,
       currency: symbol,
+      unit: query.unit ?? 0,
+      unitName: query.unit ? this.unitName(query.unit) : '',
       products: rows.map((row) => {
         const imagePath = row.imagePath?.trim() ?? '';
         const quote = quotes.get(row.id);
@@ -138,13 +140,19 @@ export class AdminProductsHandler {
       }));
   }
 
-  private getWhereStatement(q: string) {
-    if (q === '') {
-      return undefined;
-    }
+  private unitName(id: number): string {
+    return this.database.select({ name: units.name }).from(units).where(eq(units.id, id)).get()?.name ?? '';
+  }
 
+  private getWhereStatement(q: string, unitId?: number) {
+    const text = q === '' ? undefined : this.nameMatch(q);
+    const unit = unitId ? this.unitMatch(unitId) : undefined;
+    if (text && unit) return and(text, unit);
+    return text ?? unit;
+  }
+
+  private nameMatch(q: string) {
     const term = `%${q}%`;
-
     return or(
       like(products.name, term),
       exists(
@@ -153,6 +161,18 @@ export class AdminProductsHandler {
           .from(productAliases)
           .where(and(eq(productAliases.productId, products.id), like(productAliases.alias, term))),
       ),
-    )
+    );
+  }
+
+  private unitMatch(unitId: number) {
+    return or(
+      eq(products.unitId, unitId),
+      exists(
+        this.database
+          .select({ productId: productUnitConversions.productId })
+          .from(productUnitConversions)
+          .where(and(eq(productUnitConversions.productId, products.id), eq(productUnitConversions.unitId, unitId))),
+      ),
+    );
   }
 }

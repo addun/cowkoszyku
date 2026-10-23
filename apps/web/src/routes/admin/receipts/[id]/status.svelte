@@ -31,7 +31,7 @@
       <form method="post" action="?/retry">
         <Button type="submit">Read again</Button>
       </form>
-      <p class="text-muted-foreground text-sm">Or upload a new photo from <a class="underline underline-offset-4" href="/admin/receipts">Receipts</a>.</p>
+      <p class="text-muted-foreground text-sm">Or upload a new photo from <a class="underline underline-offset-4" href="/admin/receipts/new">Add receipt</a>.</p>
     {/if}
     <Button variant="destructive" class="w-fit" href="/admin/receipts/{receipt.id}/delete">Delete receipt</Button>
   </div>

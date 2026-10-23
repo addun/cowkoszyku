@@ -105,7 +105,7 @@ export class AdminCatalogHandler {
     const product = this.products.getProduct(productId);
     return AdminCatalogMergeOptionsResponse.parse({
       product: presentProduct(product),
-      targets: this.products.listProducts('').filter((item) => item.id !== product.id),
+      targets: [],
     });
   }
 
@@ -175,7 +175,7 @@ export class AdminCatalogHandler {
     return AdminCatalogPurchaseFormResponse.parse({
       product: presentProduct(product),
       purchase: presentPurchase(purchase),
-      stores: this.locations.listStores().map(presentStore),
+      stores: this.chosenStore(purchase.storeId),
       symbol: this.symbol(),
       currency: this.config.get<string>('CURRENCY') || 'PLN',
     });
@@ -183,6 +183,15 @@ export class AdminCatalogHandler {
 
   private symbol(): string {
     return this.config.get<string>('CURRENCY_SYMBOL') || 'zł';
+  }
+
+  private chosenStore(storeId: number | null) {
+    if (!storeId) return [];
+    try {
+      return [presentStore(this.locations.getStore(storeId))];
+    } catch {
+      return [];
+    }
   }
 
   private async save(body: z.infer<typeof ProductRequest>, productId: number, file?: Express.Multer.File): Promise<AdminCatalogIdResponse> {

@@ -12,6 +12,8 @@
   let { data } = $props();
 
   const q = $derived(page.url.searchParams.get('q') ?? '');
+  const unit = $derived(page.url.searchParams.get('unit') ?? '');
+  const listKey = $derived(`${q}\n${unit}`);
   const imported = $derived(Number.parseInt(page.url.searchParams.get('imported') ?? '', 10) || 0);
   const error = $derived(page.url.searchParams.get('error') ?? '');
 
@@ -21,18 +23,20 @@
   let moreError = $state('');
   let loading = $state(false);
 
-  const products = $derived(moreQuery === q ? [...data.products, ...more] : data.products);
+  const products = $derived(moreQuery === listKey ? [...data.products, ...more] : data.products);
   const loadError = $derived(moreError || data.loadError);
-  const hasMore = $derived(moreQuery === q ? moreFull && products.length > 0 : data.products.length === LIMIT);
+  const hasMore = $derived(moreQuery === listKey ? moreFull && products.length > 0 : data.products.length === LIMIT);
 
   $effect(() => {
-    void q;
+    void listKey;
     moreError = '';
   });
 
   async function loadMore() {
     if (loading || !hasMore) return;
     const query = q;
+    const unitId = unit;
+    const key = `${query}\n${unitId}`;
     const offset = products.length;
     loading = true;
     moreError = '';
@@ -42,21 +46,22 @@
         offset: String(offset),
         limit: String(LIMIT),
       });
+      if (unitId) params.set('unit', unitId);
       const res = await fetch(`/api/admin/products.json?${params}`);
-      if (query !== q) return;
+      if (key !== listKey) return;
       if (!res.ok) {
         moreError = 'Could not load products.';
         return;
       }
       const body = (await res.json()) as AdminProductsResponse;
-      if (query !== q) return;
-      const seen = new Set((moreQuery === query ? [...data.products, ...more] : data.products).map((product) => product.id));
+      if (key !== listKey) return;
+      const seen = new Set((moreQuery === key ? [...data.products, ...more] : data.products).map((product) => product.id));
       const next = body.products.filter((product) => !seen.has(product.id));
-      more = moreQuery === query ? [...more, ...next] : next;
-      moreQuery = query;
+      more = moreQuery === key ? [...more, ...next] : next;
+      moreQuery = key;
       moreFull = body.products.length === LIMIT;
     } catch {
-      if (query !== q) return;
+      if (key !== listKey) return;
       moreError = 'API is unavailable.';
     } finally {
       loading = false;
@@ -85,10 +90,16 @@
 {/if}
 
 <div class="flex flex-col gap-4">
-  <h1 class="text-2xl font-semibold tracking-tight">Products</h1>
+  <div>
+    <h1 class="text-2xl font-semibold tracking-tight">Products</h1>
+    {#if data.unitName}
+      <p class="text-muted-foreground text-sm">{data.unitName} · <a class="underline underline-offset-4" href="/admin/products">All products</a></p>
+    {/if}
+  </div>
   <form class="flex gap-2" method="get" action="/admin">
     <label class="sr-only" for="q">Search</label>
-    <Input id="q" name="q" type="search" class="max-w-sm" value={q} placeholder="Find a product" autocomplete="off" />
+    {#if unit}<input type="hidden" name="unit" value={unit} />{/if}
+    <Input id="q" name="q" type="search" class="w-full flex-1" value={q} placeholder="Find a product" autocomplete="off" />
     <Button type="submit">Search</Button>
   </form>
 </div>
@@ -99,10 +110,12 @@
       <Empty.Header>
         {#if q}
           <Empty.Title>No product matches “{q}”.</Empty.Title>
+        {:else if unit}
+          <Empty.Title>No products use this unit.</Empty.Title>
         {:else}
           <Empty.Title>Nothing on the list yet.</Empty.Title>
           <Empty.Description>
-            <a href="/admin/products/new">Add the first product you buy in bulk</a>, or <a href="/admin/receipts">scan a bill</a>.
+            <a href="/admin/products/new">Add the first product you buy in bulk</a>, or <a href="/admin/receipts/new">scan a bill</a>.
           </Empty.Description>
         {/if}
       </Empty.Header>

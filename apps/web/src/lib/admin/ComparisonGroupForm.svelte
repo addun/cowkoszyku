@@ -33,7 +33,6 @@
             <NativeSelect.Option value={text(row.id)}>{text(row.name)}</NativeSelect.Option>
           {/each}
         </NativeSelect.Root>
-        <Field.Description>Members need this as their purchase unit, or a conversion to it. Rankings use the latest logged price per kg, litre, or whichever unit you pick.</Field.Description>
       </Field.Field>
     </Field.Set>
 
