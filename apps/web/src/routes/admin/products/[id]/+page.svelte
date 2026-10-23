@@ -93,9 +93,9 @@
                 {#if row.isPrice}<Badge variant="outline">price</Badge>{/if}
               </Card.Title>
               <Card.Description>
-                {#if shop}{shop} · {/if}{formatQty(text(row.quantity))} {text(product.unitName)} · {formatLinePrice(text(row.amount), text(row.quantity), text(product.compareValue), text(product.unitName), symbol)}
+                {#if shop}{shop} · {/if}{formatQty(text(row.quantity))} {text(product.unitName)} · {formatMoneyAmount(text(row.amount), symbol)}
               </Card.Description>
-              <Card.Action class="font-medium tabular-nums">{formatMoneyAmount(text(row.amount), symbol)}</Card.Action>
+              <Card.Action class="text-right font-medium whitespace-nowrap tabular-nums">{formatLinePrice(text(row.amount), text(row.quantity), text(product.compareValue), text(product.unitName), symbol)}</Card.Action>
             </Card.Header>
             <Card.Footer class="justify-between">
               {#if row.receiptId}

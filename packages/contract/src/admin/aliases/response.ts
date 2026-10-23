@@ -23,6 +23,9 @@ export const AdminAliasesResponse = z.object({
   aliases: z.array(AdminAliasResponse),
   filter: product.nullable(),
   productQuery: z.string(),
+  query: z.string().default(''),
+  offset: z.number().int().nonnegative().default(0),
+  limit: z.number().int().positive().default(40),
 });
 export type AdminAliasesResponse = z.infer<typeof AdminAliasesResponse>;
 

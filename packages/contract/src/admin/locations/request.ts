@@ -13,8 +13,17 @@ const coord = (label: string, min: number, max: number) =>
     .max(max, `${label} must be a number between ${min} and ${max}.`)
     .nullable();
 
+const STORE_PAGE_SIZE = 40;
+const STORE_PAGE_MAX = 100;
+
 export const RetailChainId = z.coerce.number().int().positive();
 export const StoreId = z.coerce.number().int().positive();
+
+export const StoresListRequest = z.object({
+  q: z.string().trim().default(''),
+  offset: z.coerce.number().int().nonnegative().default(0),
+  limit: z.coerce.number().int().positive().max(STORE_PAGE_MAX).default(STORE_PAGE_SIZE),
+});
 
 export const NewStoreRequest = z
   .object({

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { count, eq, sql } from 'drizzle-orm';
+import { count, eq, or, sql } from 'drizzle-orm';
 import { DatabaseService } from '../../db/database.service.js';
 import { changesOf, countOf, emptyStr, lastId, nocaseEq, nocaseOrder } from '../../db/query.js';
 import { productAliases, purchases, retailChains, stores } from '../../db/schema.js';
@@ -75,6 +75,25 @@ export class LocationsRepository {
 
   listStores(): Store[] {
     return this.storeQuery().groupBy(stores.id).orderBy(nocaseOrder(stores.name), stores.id).all();
+  }
+
+  listStoresPage(offset: number, limit: number, q = ''): Store[] {
+    const term = q.trim().replaceAll('%', '').replaceAll('_', '');
+    const query = this.storeQuery();
+    const filtered =
+      term === ''
+        ? query
+        : query.where(
+            or(
+              sql`${stores.name} like ${`%${term}%`} collate nocase`,
+              sql`${stores.city} like ${`%${term}%`} collate nocase`,
+              sql`${stores.streetName} like ${`%${term}%`} collate nocase`,
+              sql`${stores.postalCode} like ${`%${term}%`} collate nocase`,
+              sql`${stores.externalId} like ${`%${term}%`} collate nocase`,
+              sql`${retailChains.name} like ${`%${term}%`} collate nocase`,
+            ),
+          );
+    return filtered.groupBy(stores.id).orderBy(nocaseOrder(stores.name), stores.id).limit(limit).offset(offset).all();
   }
 
   getStore(id: number): Store {

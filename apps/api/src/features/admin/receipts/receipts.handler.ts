@@ -40,6 +40,7 @@ import { ImagesService } from '../../../web/images.service.js';
 import { ReceiptImagesService } from '../../../web/receipt-images.js';
 import {
   type ReceiptVisitRequest,
+  ReceiptsListRequest,
   AdminReceiptConfirmedResponse,
   AdminReceiptDeletedResponse,
   AdminReceiptDetailResponse,
@@ -66,11 +67,22 @@ export class AdminReceiptsHandler {
     private readonly config: ConfigService,
   ) {}
 
-  list(): AdminReceiptsResponse {
+  list(query: z.infer<typeof ReceiptsListRequest>): AdminReceiptsResponse {
+    const storeId = query.store ?? 0;
+    let storeName = '';
+    if (storeId > 0) {
+      try {
+        storeName = this.locations.getStore(storeId).name;
+      } catch (err) {
+        if (!(err instanceof NotFoundError)) throw err;
+      }
+    }
     return AdminReceiptsResponse.parse({
       configured: this.ocr.configured(),
       model: this.settings.getSetting('ocr_model'),
-      receipts: this.receipts.listReceipts().map(presentReceiptListItem),
+      store: storeId,
+      storeName,
+      receipts: this.receipts.listReceipts(storeId).map(presentReceiptListItem),
     });
   }
 
@@ -110,8 +122,7 @@ export class AdminReceiptsHandler {
     }
     if (receipt.status === RECEIPT_MIGRATED) {
       const buys = this.purchases.listPurchasesByReceipt(receipt.id);
-      const stores = this.locations.listStores();
-      const facts = receiptVisitFacts(receipt, buys, stores);
+      const facts = receiptVisitFacts(receipt, buys, this.visitStores(buys));
       return AdminReceiptDetailResponse.parse({
         kind: 'show' as const,
         receipt: presentReceipt(receipt),
@@ -132,9 +143,9 @@ export class AdminReceiptsHandler {
     return AdminReceiptDetailResponse.parse({
       kind: 'review' as const,
       view,
-      products: lookups.products,
+      products: [],
       units: lookups.units,
-      stores: lookups.stores.map(presentStore),
+      stores: this.storeOptions(lookups.stores, view.storeId),
       symbol: this.config.get<string>('CURRENCY_SYMBOL') || 'zł',
       currency: this.config.get<string>('CURRENCY') || 'PLN',
     });
@@ -144,13 +155,12 @@ export class AdminReceiptsHandler {
     const receipt = this.load(receiptId);
     if (receipt.status !== RECEIPT_MIGRATED) throw new ConflictException('This receipt is not saved as purchases yet.');
     const buys = this.purchases.listPurchasesByReceipt(receipt.id);
-    const stores = this.locations.listStores();
-    const facts = receiptVisitFacts(receipt, buys, stores);
+    const facts = receiptVisitFacts(receipt, buys, this.visitStores(buys));
     return AdminReceiptEditResponse.parse({
       receipt: presentReceipt(receipt),
       boughtOn: facts.boughtOn,
       store: presentStore(facts.store),
-      stores: stores.map(presentStore),
+      stores: [],
     });
   }
 
@@ -208,9 +218,9 @@ export class AdminReceiptsHandler {
     }
     const review = () => ({
       view,
-      products: lookups.products,
+      products: [],
       units: lookups.units,
-      stores: lookups.stores.map(presentStore),
+      stores: this.storeOptions(lookups.stores, view.storeId),
       symbol: this.config.get<string>('CURRENCY_SYMBOL') || 'zł',
       currency: this.config.get<string>('CURRENCY') || 'PLN',
     });
@@ -240,6 +250,27 @@ export class AdminReceiptsHandler {
 
   private load(receiptId: number): Receipt {
     return this.receipts.getReceipt(receiptId);
+  }
+
+  private visitStores(buys: { storeId: number | null }[]): Store[] {
+    if (buys.length === 0) return this.locations.listStores();
+    return this.knownStore(buys[0]?.storeId);
+  }
+
+  private knownStore(id: number | null | undefined): Store[] {
+    if (!id) return [];
+    try {
+      return [this.locations.getStore(id)];
+    } catch (err) {
+      if (err instanceof NotFoundError) return [];
+      throw err;
+    }
+  }
+
+  private storeOptions(stores: Store[], id: number) {
+    if (id <= 0) return [];
+    const found = stores.find((store) => store.id === id);
+    return found ? [presentStore(found)] : [];
   }
 
   private lookups(): { products: ProductListItem[]; units: Unit[]; stores: Store[] } {

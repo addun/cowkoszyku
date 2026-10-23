@@ -3,21 +3,20 @@
   import { Button } from '$lib/components/ui/button/index.js';
   import * as Field from '$lib/components/ui/field/index.js';
   import { Input } from '$lib/components/ui/input/index.js';
-  import * as NativeSelect from '$lib/components/ui/native-select/index.js';
+  import StorePicker from '$lib/admin/StorePicker.svelte';
   import { toDatetimeLocal } from '$lib/format';
-  import { resourceView, arr, num, obj, text } from '$lib/admin/view';
+  import { resourceView, num, obj, text } from '$lib/admin/view';
   let { data, form } = $props();
   const props = $derived({
     receipt: data.receipt,
     boughtOn: form?.boughtOn ?? data.boughtOn,
     store: form?.store ?? data.store,
-    stores: data.stores,
   });
 
   const view = $derived(resourceView(props));
   const receipt = $derived(obj(view.receipt));
   const store = $derived(obj(view.store));
-  const stores = $derived(arr(view.stores).map(obj));
+  let storeId = $state(num(obj(data.store).id) ? text(obj(data.store).id) : '');
 </script>
 
 <svelte:head><title>Edit visit · cowkoszyku</title></svelte:head>
@@ -43,14 +42,8 @@
       <Field.Legend>Store</Field.Legend>
       <Field.Field>
         <Field.Label for="store">Store</Field.Label>
-        <NativeSelect.Root id="store" class="w-full" name="store_id" value={num(store.id) ? text(store.id) : ''}>
-          <NativeSelect.Option value="">None</NativeSelect.Option>
-          {#each stores as row (text(row.id))}
-            <NativeSelect.Option value={text(row.id)}>{text(row.label)}</NativeSelect.Option>
-          {/each}
-        </NativeSelect.Root>
+        <StorePicker id="store" bind:value={storeId} label={num(store.id) && text(store.id) === storeId ? text(store.label) : ''} />
       </Field.Field>
-      {#if stores.length === 0}<Field.Description>No stores yet. You can still save, or <a href="/admin/stores/new">add a store</a> first.</Field.Description>{/if}
     </Field.Set>
 
     <div class="flex flex-wrap items-center gap-2">

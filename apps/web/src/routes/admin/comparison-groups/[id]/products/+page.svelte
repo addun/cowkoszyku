@@ -1,143 +1,205 @@
 <script lang="ts">
-  import { page } from '$app/state';
   import Notice from '$lib/admin/Notice.svelte';
   import { Button } from '$lib/components/ui/button/index.js';
-  import { Checkbox } from '$lib/components/ui/checkbox/index.js';
-  import * as Empty from '$lib/components/ui/empty/index.js';
   import { Input } from '$lib/components/ui/input/index.js';
-  import { formatBoughtOn, formatPrice } from '$lib/format';
   import type { AdminProductResponse, AdminProductsResponse } from '@cowkoszyku/contract/admin/products';
 
   const LIMIT = 40;
 
-  let { data, form } = $props();
+  type Member = { id: number; name: string; unitName: string };
 
-  const q = $derived(page.url.searchParams.get('q') ?? '');
+  let { data } = $props();
 
-  let more = $state<AdminProductResponse[]>([]);
-  let moreQuery = $state<string | null>(null);
-  let moreFull = $state(true);
-  let moreError = $state('');
+  let members = $state<Member[]>(data.members.map((member) => ({ id: member.id, name: member.name, unitName: member.unitName })));
+  let rows = $state<AdminProductResponse[]>([...data.products]);
+  let seenGroup = $state(data.group.id);
+  let q = $state('');
+  let offset = $state(data.products.length);
+  let moreFull = $state(data.products.length === LIMIT);
   let loading = $state(false);
-  let picked = $state<Record<string, boolean>>({});
+  let pendingId = $state(0);
+  let error = $state('');
+  let request = 0;
+  let timer: ReturnType<typeof setTimeout> | undefined;
 
-  const products = $derived(moreQuery === q ? [...data.products, ...more] : data.products);
-  const memberIds = $derived(new Set(data.members.map((member) => member.id)));
-  const hasMore = $derived(moreQuery === q ? moreFull && products.length > 0 : data.products.length === LIMIT);
-  const pickedCount = $derived(Object.values(picked).filter(Boolean).length);
+  const memberIds = $derived(new Set(members.map((member) => member.id)));
+  const available = $derived(rows.filter((product) => !memberIds.has(product.id)));
 
   $effect(() => {
-    void q;
-    moreError = '';
-    picked = {};
+    if (data.group.id === seenGroup) return;
+    seenGroup = data.group.id;
+    members = data.members.map((member) => ({ id: member.id, name: member.name, unitName: member.unitName }));
+    rows = [...data.products];
+    q = '';
+    offset = data.products.length;
+    moreFull = data.products.length === LIMIT;
+    error = '';
   });
 
-  async function loadMore() {
-    if (loading || !hasMore) return;
-    const query = q;
-    const offset = products.length;
+  function onInput() {
+    clearTimeout(timer);
+    timer = setTimeout(() => void load(true), 200);
+  }
+
+  async function load(reset: boolean) {
+    const query = q.trim();
+    const nextOffset = reset ? 0 : offset;
+    const token = ++request;
     loading = true;
-    moreError = '';
+    error = '';
     try {
       const params = new URLSearchParams({
         q: query,
-        offset: String(offset),
+        offset: String(nextOffset),
         limit: String(LIMIT),
       });
       const res = await fetch(`/api/admin/products.json?${params}`);
-      if (query !== q) return;
+      if (token !== request) return;
       if (!res.ok) {
-        moreError = 'Could not load products.';
+        error = 'Could not load products.';
         return;
       }
       const body = (await res.json()) as AdminProductsResponse;
-      if (query !== q) return;
-      const seen = new Set((moreQuery === query ? [...data.products, ...more] : data.products).map((product) => product.id));
-      const next = body.products.filter((product) => !seen.has(product.id));
-      more = moreQuery === query ? [...more, ...next] : next;
-      moreQuery = query;
+      if (token !== request) return;
+      const seen = new Set((reset ? [] : rows).map((product) => product.id));
+      const incoming = body.products.filter((product) => !seen.has(product.id));
+      rows = reset ? incoming : [...rows, ...incoming];
+      offset = nextOffset + body.products.length;
       moreFull = body.products.length === LIMIT;
     } catch {
-      if (query !== q) return;
-      moreError = 'API is unavailable.';
+      if (token === request) error = 'API is unavailable.';
     } finally {
-      loading = false;
+      if (token === request) loading = false;
+    }
+  }
+
+  async function failure(res: Response): Promise<string> {
+    try {
+      const body = (await res.json()) as { message?: string };
+      if (body.message) return body.message;
+    } catch {
+      /* ignore */
+    }
+    return 'Could not update the group.';
+  }
+
+  async function add(product: AdminProductResponse) {
+    if (pendingId || memberIds.has(product.id)) return;
+    const member = { id: product.id, name: product.name, unitName: product.unitName };
+    members = [...members, member];
+    pendingId = product.id;
+    error = '';
+    try {
+      const res = await fetch(`/api/admin/comparison-groups/${data.group.id}/products`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ product_id: [product.id] }),
+      });
+      if (!res.ok) {
+        members = members.filter((item) => item.id !== product.id);
+        error = await failure(res);
+      }
+    } catch {
+      members = members.filter((item) => item.id !== product.id);
+      error = 'API is unavailable.';
+    } finally {
+      pendingId = 0;
+    }
+  }
+
+  async function remove(member: Member) {
+    if (pendingId) return;
+    members = members.filter((item) => item.id !== member.id);
+    pendingId = member.id;
+    error = '';
+    try {
+      const res = await fetch(`/api/admin/comparison-groups/${data.group.id}/products/${member.id}`, { method: 'DELETE' });
+      if (!res.ok) {
+        members = [...members, member];
+        error = await failure(res);
+      }
+    } catch {
+      members = [...members, member];
+      error = 'API is unavailable.';
+    } finally {
+      pendingId = 0;
     }
   }
 </script>
 
-<svelte:head><title>Add products · {data.group.name} · cowkoszyku</title></svelte:head>
+<svelte:head><title>Group {data.group.name} · cowkoszyku</title></svelte:head>
 
-<Notice message={form?.message || moreError} />
+<Notice message={error} />
 
 <div class="flex flex-col gap-4">
-  <div class="flex flex-wrap items-center justify-between gap-3">
-    <div>
-      <h1 class="text-2xl font-semibold tracking-tight">Add products</h1>
-      <p class="text-muted-foreground text-sm">{data.group.name} · {data.group.unitName} · {data.members.length} already in this group</p>
-    </div>
-    <Button variant="outline" href="/admin/comparison-groups/{data.group.id}/edit">Back</Button>
+  <div>
+    <h1 class="text-2xl font-semibold tracking-tight">Group {data.group.name}</h1>
+    <p class="text-muted-foreground text-sm">Compare in {data.group.unitName}</p>
   </div>
-  <form class="flex gap-2" method="get">
-    <label class="sr-only" for="q">Search</label>
-    <Input id="q" name="q" type="search" class="max-w-sm" value={q} placeholder="Find a product" autocomplete="off" />
-    <Button type="submit">Search</Button>
-  </form>
-</div>
 
-<form method="post" class="flex flex-col gap-4">
-  {#if products.length === 0}
-    <Empty.Root class="border">
-      <Empty.Header>
-        {#if q}
-          <Empty.Title>No product matches “{q}”.</Empty.Title>
-        {:else}
-          <Empty.Title>Nothing on the list yet.</Empty.Title>
-        {/if}
-      </Empty.Header>
-    </Empty.Root>
-  {:else}
-    <ul class="divide-y overflow-hidden rounded-xl border">
-      {#each products as product (product.id)}
-        {@const inGroup = memberIds.has(product.id)}
-        <li class="flex items-center gap-3 px-3 py-2">
-          {#if inGroup}
-            <span class="text-muted-foreground w-16 shrink-0 text-sm">In group</span>
-          {:else}
-            <Checkbox
-              id="product-{product.id}"
-              name="product_id"
-              value={String(product.id)}
-              checked={picked[String(product.id)] === true}
-              onCheckedChange={(next) => {
-                picked[String(product.id)] = next === true;
-              }}
-            />
-          {/if}
-          <label class="flex min-w-0 flex-1 items-center gap-3" for={inGroup ? undefined : `product-${product.id}`}>
-            {#if product.image}
-              <img class="size-10 rounded-md object-cover" src={product.image} alt="" />
+  <div class="grid grid-cols-1 gap-4 lg:h-[32rem] lg:grid-cols-2">
+    <section class="flex h-72 min-h-0 flex-col overflow-hidden rounded-xl border lg:h-full">
+      <h2 class="border-b px-3 py-2 text-sm font-medium">In group</h2>
+      {#if members.length === 0}
+        <p class="text-muted-foreground px-3 py-6 text-sm">No products in this group yet.</p>
+      {:else}
+        <ul class="min-h-0 flex-1 divide-y overflow-auto">
+          {#each members as member (member.id)}
+            <li class="flex items-center gap-2 px-3 py-2">
+              <span class="min-w-0 flex-1">
+                <span class="block truncate font-medium">{member.name}</span>
+                <span class="text-muted-foreground block text-sm">{member.unitName}</span>
+              </span>
+              <Button type="button" variant="ghost" size="sm" disabled={pendingId === member.id} onclick={() => remove(member)}>
+                Remove
+              </Button>
+            </li>
+          {/each}
+        </ul>
+      {/if}
+    </section>
+
+    <section class="flex h-96 min-h-0 flex-col overflow-hidden rounded-xl border lg:h-full">
+      <div class="flex flex-col gap-2 border-b px-3 py-2">
+        <h2 class="text-sm font-medium">Add new product</h2>
+        <label class="sr-only" for="q">Find a product</label>
+        <Input id="q" type="search" class="w-full" placeholder="Find a product" autocomplete="off" bind:value={q} oninput={onInput} />
+      </div>
+      <ul class="min-h-0 flex-1 overflow-auto">
+        {#each available as product (product.id)}
+          <li class="border-b last:border-b-0">
+            <button
+              type="button"
+              class="hover:bg-muted flex w-full flex-col px-3 py-2 text-left disabled:opacity-50"
+              disabled={pendingId === product.id}
+              onclick={() => add(product)}
+            >
+              <span class="truncate font-medium">{product.name}</span>
+              <span class="text-muted-foreground text-sm">{product.unitName}</span>
+            </button>
+          </li>
+        {/each}
+        {#if available.length === 0 && !loading}
+          <li class="text-muted-foreground px-3 py-6 text-sm">
+            {#if q.trim() && rows.length === 0}
+              No product matches “{q.trim()}”.
+            {:else if rows.length > 0}
+              Already in this group.
             {:else}
-              <span class="bg-muted size-10 shrink-0 rounded-md" aria-hidden="true"></span>
+              No products to add.
             {/if}
-            <span class="min-w-0 flex-1">
-              <span class="block truncate font-medium">{product.name}</span>
-              <span class="text-muted-foreground block text-sm">{product.unitName}{product.lastBought ? ` · last ${formatBoughtOn(product.lastBought)}` : ''}</span>
-            </span>
-            <span class="text-sm tabular-nums">{product.price ? formatPrice(product.price, product.compareValue, product.unitName, data.currency) : '—'}</span>
-          </label>
-        </li>
-      {/each}
-    </ul>
-    {#if hasMore}
-      <Button variant="outline" type="button" disabled={loading} onclick={loadMore}>
-        {loading ? 'Loading…' : 'Load more'}
-      </Button>
-    {/if}
-  {/if}
-
-  <div class="flex flex-wrap items-center gap-2">
-    <Button type="submit">Save{pickedCount > 0 ? ` (${pickedCount})` : ''}</Button>
-    <Button variant="outline" href="/admin/comparison-groups/{data.group.id}/edit">Cancel</Button>
+          </li>
+        {:else if loading && available.length === 0}
+          <li class="text-muted-foreground px-3 py-2 text-sm">Loading…</li>
+        {/if}
+        {#if moreFull}
+          <li class="p-2">
+            <Button type="button" variant="ghost" class="w-full" disabled={loading} onclick={() => load(false)}>
+              {loading ? 'Loading…' : 'Load more'}
+            </Button>
+          </li>
+        {/if}
+      </ul>
+    </section>
   </div>
-</form>
+</div>

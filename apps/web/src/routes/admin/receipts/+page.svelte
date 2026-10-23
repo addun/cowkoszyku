@@ -1,171 +1,77 @@
 <script lang="ts">
+  import { page } from '$app/state';
   import Notice from '$lib/admin/Notice.svelte';
-  import { onMount } from 'svelte';
-  import { bindFileDrop, bindPasteImage, firstMatching, isBillFile, pasteFailMessage, putFile, readClipboardImage } from '$lib/admin/files';
-  import * as Alert from '$lib/components/ui/alert/index.js';
   import { Button } from '$lib/components/ui/button/index.js';
   import * as Empty from '$lib/components/ui/empty/index.js';
-  import * as Field from '$lib/components/ui/field/index.js';
-  import { Input } from '$lib/components/ui/input/index.js';
-  import { formatDate } from '$lib/format';
+  import * as Table from '$lib/components/ui/table/index.js';
+  import { formatBoughtOn } from '$lib/format';
   import { resourceView, arr, obj, text } from '$lib/admin/view';
-  let { data, form } = $props();
+  let { data } = $props();
   const props = $derived({
     receipts: data.receipts,
-    configured: data.configured,
-    model: data.model,
   });
 
   const view = $derived(resourceView(props));
-  const receipts = $derived(arr(view.receipts));
-  const ready = $derived(Boolean(view.configured) && text(view.model) !== '');
-
-  let camera = $state<HTMLInputElement | null>(null);
-  let file = $state<HTMLInputElement | null>(null);
-  let wrap = $state<HTMLDivElement | null>(null);
-  let pickedName = $state('');
-  let held: File | null = null;
-
-  function currentFile(): File | null {
-    return camera?.files?.[0] || file?.files?.[0] || null;
-  }
-
-  function show(next: File | null) {
-    pickedName = next ? next.name || 'bill' : '';
-  }
-
-  function assign(next: File) {
-    if (!file || !camera) return;
-    if (!isBillFile(next)) {
-      file.setCustomValidity('Choose a photo or a PDF of the bill.');
-      file.reportValidity();
-      return;
-    }
-    file.setCustomValidity('');
-    camera.value = '';
-    held = next;
-    show(putFile(file, next, 'bill'));
-  }
-
-  async function pasteBill() {
-    if (!file) return;
-    const result = await readClipboardImage();
-    if (result.file) {
-      assign(result.file);
-      return;
-    }
-    file.setCustomValidity(pasteFailMessage(result.error));
-    file.reportValidity();
-  }
-
-  function onSubmit(event: SubmitEvent) {
-    if (!file) return;
-    if (held) putFile(file, held, 'bill');
-    if (!currentFile()) {
-      event.preventDefault();
-      file.setCustomValidity('Choose a photo or a PDF of the bill.');
-      file.reportValidity();
-      return;
-    }
-    file.setCustomValidity('');
-    const button = (event.currentTarget as HTMLFormElement).querySelector('button[type="submit"]');
-    if (button) button.textContent = 'Uploading…';
-  }
-
-  onMount(() => {
-    const bill = file;
-    const shot = camera;
-    const drop = wrap;
-    if (!bill || !shot || !drop) return;
-    const onCamera = () => {
-      bill.value = '';
-      held = shot.files?.[0] ?? null;
-      show(held);
-    };
-    const onFile = () => {
-      shot.value = '';
-      held = bill.files?.[0] ?? null;
-      show(held);
-    };
-    shot.addEventListener('change', onCamera);
-    bill.addEventListener('change', onFile);
-    const offPaste = bindPasteImage(assign);
-    const offDrop = bindFileDrop(drop, (files) => {
-      const next = firstMatching(files, isBillFile);
-      if (!next) {
-        bill.setCustomValidity('Choose a photo or a PDF of the bill.');
-        bill.reportValidity();
-        return;
+  const store = $derived(page.url.searchParams.get('store') ?? '');
+  const receipts = $derived(
+    [...arr(view.receipts)].sort((a, b) => {
+      const left = obj(a);
+      const right = obj(b);
+      const leftOn = text(left.boughtOn).trim();
+      const rightOn = text(right.boughtOn).trim();
+      if (leftOn !== rightOn) {
+        if (leftOn === '') return 1;
+        if (rightOn === '') return -1;
+        return rightOn.localeCompare(leftOn);
       }
-      assign(next);
-    });
-    return () => {
-      shot.removeEventListener('change', onCamera);
-      bill.removeEventListener('change', onFile);
-      offPaste();
-      offDrop();
-    };
-  });
+      return Number(right.id) - Number(left.id);
+    }),
+  );
 </script>
 
 <svelte:head><title>Receipts · cowkoszyku</title></svelte:head>
 
-<Notice message={form?.message || data.error} />
+<Notice message={data.error} />
 <div class="flex flex-wrap items-center justify-between gap-3">
-  <h1 class="text-2xl font-semibold tracking-tight">Receipts</h1>
-  <Button variant="outline" href="/admin/receipts/duplicates">Show duplicates</Button>
+  <div>
+    <h1 class="text-2xl font-semibold tracking-tight">Receipts</h1>
+    {#if store}
+      <p class="text-muted-foreground text-sm">{data.storeName || 'Store'} · <a class="underline underline-offset-4" href="/admin/receipts">All receipts</a></p>
+    {/if}
+  </div>
+  <div class="flex flex-wrap gap-2">
+    <Button variant="outline" href="/admin/receipts/duplicates">Show duplicates</Button>
+    <Button variant="outline" href="/admin/receipts/imports">Import</Button>
+    <Button href="/admin/receipts/new">Add receipt</Button>
+  </div>
 </div>
-
-{#if !view.configured}
-  <Alert.Root variant="destructive">
-    <Alert.Description>The reader is off until you set <code>OCR_API_KEY</code> (OpenAI) or <code>OCR_BASE_URL</code> (any OpenAI-compatible vision API, including a local server).</Alert.Description>
-  </Alert.Root>
-{/if}
-{#if !text(view.model)}
-  <Alert.Root variant="destructive">
-    <Alert.Description>Set the AI model under <a href="/admin/settings">Settings</a> so the reader can run.</Alert.Description>
-  </Alert.Root>
-{/if}
-{#if ready}
-  <form class="flex max-w-xl flex-col gap-4" method="post" action="/admin/receipts" enctype="multipart/form-data" onsubmit={onSubmit}>
-    <div class="flex flex-col gap-3 rounded-xl border border-dashed p-4" class:bg-muted={pickedName !== ''} bind:this={wrap}>
-      <p class="font-medium">Photo or PDF of the bill</p>
-      <p class="text-muted-foreground text-sm">Paste, drop, take a photo, or choose one. jpeg, png, webp, gif or pdf, up to 10 MB.</p>
-      <Field.Field>
-        <Field.Label for="bill-camera">Take photo</Field.Label>
-        <Input id="bill-camera" name="bill_camera" type="file" accept="image/*" capture="environment" bind:ref={camera} />
-      </Field.Field>
-      <Field.Field>
-        <Field.Label for="bill">Choose file</Field.Label>
-        <Input id="bill" name="bill" type="file" accept="image/*,.pdf,application/pdf" bind:ref={file} />
-      </Field.Field>
-      <Button type="button" variant="outline" class="w-fit" onclick={pasteBill}>Paste</Button>
-      {#if pickedName}
-        <p class="text-sm">File {pickedName} is ready to upload</p>
-      {/if}
-    </div>
-    <Button type="submit">Read the bill</Button>
-  </form>
-{/if}
 
 {#if receipts.length === 0}
   <Empty.Root class="border">
     <Empty.Header>
-      <Empty.Title>No receipts yet.</Empty.Title>
+      <Empty.Title>{store ? 'No receipts for this store.' : 'No receipts yet.'}</Empty.Title>
     </Empty.Header>
   </Empty.Root>
 {:else}
-  <ul class="divide-y overflow-hidden rounded-xl border">
-    {#each receipts as receipt (text(obj(receipt).id))}
-      {@const row = obj(receipt)}
-      <li>
-        <a class="hover:bg-muted/50 flex items-center gap-3 px-3 py-2" href="/admin/receipts/{row.id}">
-          <span class="min-w-0">
-            <span class="block font-medium">{row.shopName ? text(row.shopName) : formatDate(text(row.displayDate))}</span>
-            <span class="text-muted-foreground text-sm">{row.shopName ? `${formatDate(text(row.displayDate))} · ` : ''}{text(row.statusLabel)}</span>
-          </span>
-        </a>
-      </li>
-    {/each}
-  </ul>
+  <Table.Root>
+    <Table.Header>
+      <Table.Row>
+        <Table.Head>Date</Table.Head>
+        <Table.Head>Shop</Table.Head>
+        <Table.Head>Status</Table.Head>
+      </Table.Row>
+    </Table.Header>
+    <Table.Body>
+      {#each receipts as receipt (text(obj(receipt).id))}
+        {@const row = obj(receipt)}
+        <Table.Row>
+          <Table.Cell class="font-medium">
+            <a class="hover:underline" href="/admin/receipts/{row.id}">{formatBoughtOn(text(row.displayDate))}</a>
+          </Table.Cell>
+          <Table.Cell>{row.shopName ? text(row.shopName) : '—'}</Table.Cell>
+          <Table.Cell>{text(row.statusLabel)}</Table.Cell>
+        </Table.Row>
+      {/each}
+    </Table.Body>
+  </Table.Root>
 {/if}

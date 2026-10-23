@@ -4,9 +4,10 @@ import { InvalidRetailChainError, InvalidStoreError } from '../../../domain/erro
 import { AliasesRepository, type ProductAlias } from '#app/store/aliases';
 import { LocationsRepository } from '#app/store/locations';
 import { ProductsRepository, type Product } from '#app/store/products';
-import { presentAlias, presentChain, presentStore } from '../../../web/present.js';
+import { presentAlias, presentChain } from '../../../web/present.js';
 import {
   type AliasRequest,
+  AliasesListRequest,
   AdminAliasDeletedResponse,
   AdminAliasFormResponse,
   AdminAliasResponse,
@@ -21,13 +22,21 @@ export class AdminAliasesHandler {
     private readonly locations: LocationsRepository,
   ) {}
 
-  list(query: { product: number }): AdminAliasesResponse {
+  list(query: z.infer<typeof AliasesListRequest>): AdminAliasesResponse {
     const filter = query.product > 0 ? this.products.getProduct(query.product) : null;
-    const rows = filter ? this.aliases.listAliasesByProduct(filter.id) : this.aliases.listAliases();
+    const rows = this.aliases.listAliasesPage({
+      productId: filter?.id ?? 0,
+      q: query.q,
+      offset: query.offset,
+      limit: query.limit,
+    });
     return AdminAliasesResponse.parse({
       aliases: rows.map(presentAlias),
       filter,
       productQuery: filter ? `?product=${filter.id}` : '',
+      query: query.q,
+      offset: query.offset,
+      limit: query.limit,
     });
   }
 
@@ -78,8 +87,8 @@ export class AdminAliasesHandler {
 
   private lookups() {
     return {
-      products: this.products.listProducts(''),
-      stores: this.locations.listStores().map(presentStore),
+      products: [],
+      stores: [],
       chains: this.locations.listRetailChains().map(presentChain),
     };
   }

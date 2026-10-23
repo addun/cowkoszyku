@@ -4,6 +4,7 @@ import { AdminAliasesHandler } from './aliases.handler.js';
 import {
   AliasRequest,
   AliasId,
+  AliasesListRequest,
   ProductRefRequest,
   type AdminAliasDeletedResponse,
   type AdminAliasFormResponse,
@@ -16,7 +17,7 @@ export class AdminAliasesController {
   constructor(private readonly handler: AdminAliasesHandler) {}
 
   @Get('/api/admin/aliases')
-  list(@Query({ schema: ProductRefRequest }) query: z.infer<typeof ProductRefRequest>): AdminAliasesResponse {
+  list(@Query({ schema: AliasesListRequest }) query: z.infer<typeof AliasesListRequest>): AdminAliasesResponse {
     return this.handler.list(query);
   }
 

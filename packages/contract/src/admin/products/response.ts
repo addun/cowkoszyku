@@ -17,6 +17,8 @@ export const AdminProductsResponse = z.object({
   offset: z.number().int().nonnegative(),
   limit: z.number().int().positive(),
   currency: z.string(),
+  unit: z.number().int().nonnegative().default(0),
+  unitName: z.string().default(''),
   products: z.array(AdminProductResponse),
 });
 export type AdminProductsResponse = z.infer<typeof AdminProductsResponse>;

@@ -5,6 +5,7 @@ import { presentChain, presentStore } from '../../../web/present.js';
 import {
   type NewStoreRequest,
   type RetailChainRequest,
+  StoresListRequest,
   type StoreMergeRequest,
   type StoreRequest,
   AdminChainResponse,
@@ -50,8 +51,12 @@ export class AdminLocationsHandler {
     return AdminOkResponse.parse({ ok: true });
   }
 
-  stores(): AdminStoresResponse {
-    return AdminStoresResponse.parse({ stores: this.locations.listStores().map(presentStore) });
+  stores(query: z.infer<typeof StoresListRequest>): AdminStoresResponse {
+    return AdminStoresResponse.parse({
+      stores: this.locations.listStoresPage(query.offset, query.limit, query.q).map(presentStore),
+      offset: query.offset,
+      limit: query.limit,
+    });
   }
 
   newStore(query: z.infer<typeof NewStoreRequest>): AdminNewStoreResponse {
@@ -121,7 +126,7 @@ export class AdminLocationsHandler {
     const store = this.locations.getStore(storeId);
     return AdminStoreMergeOptionsResponse.parse({
       store: presentStore(store),
-      targets: this.locations.listStores().filter((s) => s.id !== store.id).map(presentStore),
+      targets: [],
     });
   }
 
