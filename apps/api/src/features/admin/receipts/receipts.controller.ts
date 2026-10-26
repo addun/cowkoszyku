@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Res, UploadedFiles, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Res, UploadedFiles, UseInterceptors, SerializeOptions } from '@nestjs/common';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import type { Response } from 'express';
 import { memoryStorage } from 'multer';
@@ -8,13 +8,13 @@ import {
   ReceiptFormRequest,
   ReceiptsListRequest,
   ReceiptVisitRequest,
-  type AdminReceiptConfirmedResponse,
-  type AdminReceiptDeletedResponse,
-  type AdminReceiptDetailResponse,
-  type AdminReceiptDuplicatesResponse,
-  type AdminReceiptEditResponse,
-  type AdminReceiptIdResponse,
-  type AdminReceiptsResponse,
+  AdminReceiptConfirmedResponse,
+  AdminReceiptDeletedResponse,
+  AdminReceiptDetailResponse,
+  AdminReceiptDuplicatesResponse,
+  AdminReceiptEditResponse,
+  AdminReceiptIdResponse,
+  AdminReceiptsResponse,
 } from '@cowkoszyku/contract/admin/receipts';
 import { AdminReceiptsHandler } from './receipts.handler.js';
 
@@ -23,12 +23,14 @@ export class AdminReceiptsController {
   constructor(private readonly handler: AdminReceiptsHandler) {}
 
   @Get('/api/admin/receipts')
-  list(@Query({ schema: ReceiptsListRequest }) query: z.infer<typeof ReceiptsListRequest>): AdminReceiptsResponse {
+  @SerializeOptions({ schema: AdminReceiptsResponse })
+  list(@Query({ schema: ReceiptsListRequest }) query: z.infer<typeof ReceiptsListRequest>) {
     return this.handler.list(query);
   }
 
   @Get('/api/admin/receipts/duplicates')
-  duplicates(): AdminReceiptDuplicatesResponse {
+  @SerializeOptions({ schema: AdminReceiptDuplicatesResponse })
+  duplicates() {
     return this.handler.duplicates();
   }
 
@@ -42,9 +44,10 @@ export class AdminReceiptsController {
       { storage: memoryStorage(), limits: { fileSize: 12 << 20 } },
     ),
   )
+  @SerializeOptions({ schema: AdminReceiptIdResponse })
   upload(
     @UploadedFiles() files: { bill?: Express.Multer.File[]; bill_camera?: Express.Multer.File[] },
-  ): Promise<AdminReceiptIdResponse> {
+  ) {
     return this.handler.upload(files);
   }
 
@@ -60,38 +63,44 @@ export class AdminReceiptsController {
   }
 
   @Get('/api/admin/receipts/:id')
-  show(@Param('id', { schema: ReceiptId }) receiptId: number): AdminReceiptDetailResponse {
+  @SerializeOptions({ schema: AdminReceiptDetailResponse })
+  show(@Param('id', { schema: ReceiptId }) receiptId: number) {
     return this.handler.show(receiptId);
   }
 
   @Get('/api/admin/receipts/:id/edit')
-  edit(@Param('id', { schema: ReceiptId }) receiptId: number): AdminReceiptEditResponse {
+  @SerializeOptions({ schema: AdminReceiptEditResponse })
+  edit(@Param('id', { schema: ReceiptId }) receiptId: number) {
     return this.handler.edit(receiptId);
   }
 
   @Patch('/api/admin/receipts/:id')
+  @SerializeOptions({ schema: AdminReceiptIdResponse })
   updateVisit(
     @Param('id', { schema: ReceiptId }) receiptId: number,
     @Body({ schema: ReceiptVisitRequest }) body: z.infer<typeof ReceiptVisitRequest>,
-  ): AdminReceiptIdResponse {
+  ) {
     return this.handler.updateVisit(receiptId, body);
   }
 
   @Post('/api/admin/receipts/:id/retry')
-  retry(@Param('id', { schema: ReceiptId }) receiptId: number): Promise<AdminReceiptIdResponse> {
+  @SerializeOptions({ schema: AdminReceiptIdResponse })
+  retry(@Param('id', { schema: ReceiptId }) receiptId: number) {
     return this.handler.retry(receiptId);
   }
 
   @Post('/api/admin/receipts/:id/confirm')
+  @SerializeOptions({ schema: AdminReceiptConfirmedResponse })
   confirm(
     @Param('id', { schema: ReceiptId }) receiptId: number,
     @Body({ schema: ReceiptFormRequest }) body: Record<string, string>,
-  ): AdminReceiptConfirmedResponse {
+  ) {
     return this.handler.confirm(receiptId, body);
   }
 
   @Delete('/api/admin/receipts/:id')
-  remove(@Param('id', { schema: ReceiptId }) receiptId: number): Promise<AdminReceiptDeletedResponse> {
+  @SerializeOptions({ schema: AdminReceiptDeletedResponse })
+  remove(@Param('id', { schema: ReceiptId }) receiptId: number) {
     return this.handler.remove(receiptId);
   }
 }

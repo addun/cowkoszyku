@@ -16,17 +16,6 @@ import {
   type ProductRequest,
   type PurchaseRequest,
   type UnitIdRequest,
-  AdminCatalogBlankResponse,
-  AdminCatalogChangeUnitResponse,
-  AdminCatalogIdResponse,
-  AdminCatalogMergeOptionsResponse,
-  AdminCatalogMergePlanResponse,
-  AdminCatalogOkResponse,
-  AdminCatalogPurchaseDeletedResponse,
-  AdminCatalogPurchaseFormResponse,
-  AdminCatalogPurchaseResponse,
-  AdminCatalogPurchaseUpdatedResponse,
-  AdminCatalogShowResponse,
 } from '@cowkoszyku/contract/admin/catalog';
 
 @Injectable()
@@ -41,88 +30,88 @@ export class AdminCatalogHandler {
     private readonly config: ConfigService,
   ) {}
 
-  blank(): AdminCatalogBlankResponse {
-    return AdminCatalogBlankResponse.parse({
+  blank() {
+    return {
       product: presentProduct(emptyProduct()),
       units: this.units.listUnits(),
       groups: this.groupOptions([]),
-    });
+    };
   }
 
-  show(productId: number): AdminCatalogShowResponse {
+  show(productId: number) {
     const product = this.products.getProduct(productId);
-    return AdminCatalogShowResponse.parse({
+    return {
       product: presentProduct(product),
       purchases: this.purchases.listPurchases(productId).map(presentPurchase),
       storeById: storesByID(this.locations.listStores()),
       groups: this.groups.listComparisonGroupsForProduct(productId),
       symbol: this.symbol(),
-    });
+    };
   }
 
-  edit(productId: number): AdminCatalogBlankResponse {
+  edit(productId: number) {
     const product = this.products.getProduct(productId);
     const selected = this.groups.listComparisonGroupsForProduct(productId).map((group) => group.id);
-    return AdminCatalogBlankResponse.parse({
+    return {
       product: presentProduct(product),
       units: this.units.listUnits(),
       groups: this.groupOptions(selected),
-    });
+    };
   }
 
-  create(body: z.infer<typeof ProductRequest>, file?: Express.Multer.File): Promise<AdminCatalogIdResponse> {
+  create(body: z.infer<typeof ProductRequest>, file?: Express.Multer.File) {
     return this.save(body, 0, file);
   }
 
-  update(productId: number, body: z.infer<typeof ProductRequest>, file?: Express.Multer.File): Promise<AdminCatalogIdResponse> {
+  update(productId: number, body: z.infer<typeof ProductRequest>, file?: Express.Multer.File) {
     return this.save(body, productId, file);
   }
 
-  remove(productId: number): AdminCatalogOkResponse {
+  remove(productId: number) {
     const image = this.products.deleteProduct(productId);
     this.images.deleteImage(image);
-    return AdminCatalogOkResponse.parse({ ok: true });
+    return { ok: true };
   }
 
-  changeUnitForm(productId: number): AdminCatalogChangeUnitResponse {
+  changeUnitForm(productId: number) {
     const product = this.products.getProduct(productId);
-    return AdminCatalogChangeUnitResponse.parse({
+    return {
       product: presentProduct(product),
       history: this.purchases.listPurchases(productId).length,
-    });
+    };
   }
 
-  changeUnit(productId: number, body: z.infer<typeof UnitIdRequest>): AdminCatalogIdResponse {
+  changeUnit(productId: number, body: z.infer<typeof UnitIdRequest>) {
     const product = this.products.getProduct(productId);
     if (!product.conversions.some((conversion) => conversion.unitId === body.unit_id)) {
       throw new UnprocessableEntityException('Choose one of the extra units on this product.');
     }
     this.products.changePurchaseUnit(productId, body.unit_id);
-    return AdminCatalogIdResponse.parse({ id: productId });
+    return { id: productId };
   }
 
-  mergeOptions(productId: number): AdminCatalogMergeOptionsResponse {
+  mergeOptions(productId: number) {
     const product = this.products.getProduct(productId);
-    return AdminCatalogMergeOptionsResponse.parse({
+    return {
       product: presentProduct(product),
       targets: [],
-    });
+    };
   }
 
-  mergePlan(productId: number, intoId: number): AdminCatalogMergePlanResponse {
+  mergePlan(productId: number, intoId: number) {
     const plan = this.products.mergePlan(intoId, productId);
-    return AdminCatalogMergePlanResponse.parse({
+    return {
       plan: { ...plan, into: presentProduct(plan.into), from: presentProduct(plan.from) },
-    });
+    };
   }
 
-  merge(productId: number, body: z.infer<typeof MergeRequest>): AdminCatalogIdResponse {
+  merge(productId: number, body: z.infer<typeof MergeRequest>) {
     const { keeper, dropImage } = this.products.mergeProducts(body.into_id, productId);
     this.images.deleteImage(dropImage);
-    return AdminCatalogIdResponse.parse({ id: keeper.id });
+    return { id: keeper.id };
   }
 
-  newPurchase(productId: number): AdminCatalogPurchaseFormResponse {
+  newPurchase(productId: number) {
     const product = this.products.getProduct(productId);
     const purchase: Purchase = {
       id: 0,
@@ -138,47 +127,45 @@ export class AdminCatalogHandler {
     return this.purchasePayload(product, purchase);
   }
 
-  createPurchase(productId: number, body: z.infer<typeof PurchaseRequest>): AdminCatalogPurchaseResponse {
+  createPurchase(productId: number, body: z.infer<typeof PurchaseRequest>) {
     const parsed = this.parsePurchase(body);
     if (parsed.err) throw new UnprocessableEntityException(parsed.err);
     const product = this.products.getProduct(productId);
     const kind = this.purchases.parsePurchaseKind(body.kind);
     const storeId = this.resolveStore(body.store_id);
-    return AdminCatalogPurchaseResponse.parse(
-      this.purchases.createPurchase(product.id, storeId, parsed.boughtOn, parsed.qty, parsed.amount, kind),
-    );
+    return this.purchases.createPurchase(product.id, storeId, parsed.boughtOn, parsed.qty, parsed.amount, kind);
   }
 
-  purchase(purchaseId: number): AdminCatalogPurchaseFormResponse {
+  purchase(purchaseId: number) {
     const purchase = this.purchases.getPurchase(purchaseId);
     const product = this.products.getProduct(purchase.productId);
     return this.purchasePayload(product, purchase);
   }
 
-  updatePurchase(purchaseId: number, body: z.infer<typeof PurchaseRequest>): AdminCatalogPurchaseUpdatedResponse {
+  updatePurchase(purchaseId: number, body: z.infer<typeof PurchaseRequest>) {
     const parsed = this.parsePurchase(body);
     if (parsed.err) throw new UnprocessableEntityException(parsed.err);
     const current = this.purchases.getPurchase(purchaseId);
     const kind = this.purchases.parsePurchaseKind(body.kind);
     const storeId = this.resolveStore(body.store_id);
     this.purchases.updatePurchase(purchaseId, storeId, parsed.boughtOn, parsed.qty, parsed.amount, kind);
-    return AdminCatalogPurchaseUpdatedResponse.parse({ id: purchaseId, productId: current.productId });
+    return { id: purchaseId, productId: current.productId };
   }
 
-  removePurchase(purchaseId: number): AdminCatalogPurchaseDeletedResponse {
+  removePurchase(purchaseId: number) {
     const purchase = this.purchases.getPurchase(purchaseId);
     this.purchases.deletePurchase(purchaseId);
-    return AdminCatalogPurchaseDeletedResponse.parse({ productId: purchase.productId, kind: purchase.kind });
+    return { productId: purchase.productId, kind: purchase.kind };
   }
 
-  private purchasePayload(product: Product, purchase: Purchase): AdminCatalogPurchaseFormResponse {
-    return AdminCatalogPurchaseFormResponse.parse({
+  private purchasePayload(product: Product, purchase: Purchase) {
+    return {
       product: presentProduct(product),
       purchase: presentPurchase(purchase),
       stores: this.chosenStore(purchase.storeId),
       symbol: this.symbol(),
       currency: this.config.get<string>('CURRENCY') || 'PLN',
-    });
+    };
   }
 
   private symbol(): string {
@@ -194,7 +181,7 @@ export class AdminCatalogHandler {
     }
   }
 
-  private async save(body: z.infer<typeof ProductRequest>, productId: number, file?: Express.Multer.File): Promise<AdminCatalogIdResponse> {
+  private async save(body: z.infer<typeof ProductRequest>, productId: number, file?: Express.Multer.File) {
     const { convs, msg } = parseExtraUnits(body, body.unit_id);
     if (msg) throw new UnprocessableEntityException(msg);
     let imageName = '';
@@ -208,7 +195,7 @@ export class AdminCatalogHandler {
       if (productId === 0) {
         const created = this.products.createProduct(body.name, body.unit_id, imageName || null, convs, body.ean);
         this.groups.setProductComparisonGroups(created.id, body.group_id);
-        return AdminCatalogIdResponse.parse({ id: created.id });
+        return { id: created.id };
       }
       const current = this.products.getProduct(productId);
       this.products.updateProduct(
@@ -223,7 +210,7 @@ export class AdminCatalogHandler {
       this.groups.setProductComparisonGroups(productId, body.group_id);
       if (imageName && current.imagePath) this.images.deleteImage(current.imagePath);
       if (clearImage && imageName === '' && current.imagePath) this.images.deleteImage(current.imagePath);
-      return AdminCatalogIdResponse.parse({ id: productId });
+      return { id: productId };
     } catch (err) {
       if (imageName) this.images.deleteImage(imageName);
       throw err;

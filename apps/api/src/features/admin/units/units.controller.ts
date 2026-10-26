@@ -1,11 +1,11 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, SerializeOptions } from '@nestjs/common';
 import type { z } from 'zod';
 import {
   UnitId,
   UnitRequest,
-  type AdminOkResponse,
-  type AdminUnitResponse,
-  type AdminUnitsResponse,
+  AdminOkResponse,
+  AdminUnitResponse,
+  AdminUnitsResponse,
 } from '@cowkoszyku/contract/admin/units';
 import { AdminUnitsHandler } from './units.handler.js';
 
@@ -14,30 +14,35 @@ export class AdminUnitsController {
   constructor(private readonly handler: AdminUnitsHandler) {}
 
   @Get('/api/admin/units')
-  list(): AdminUnitsResponse {
+  @SerializeOptions({ schema: AdminUnitsResponse })
+  list() {
     return this.handler.list();
   }
 
   @Get('/api/admin/units/:id')
-  get(@Param('id', { schema: UnitId }) unitId: number): AdminUnitResponse {
+  @SerializeOptions({ schema: AdminUnitResponse })
+  get(@Param('id', { schema: UnitId }) unitId: number) {
     return this.handler.get(unitId);
   }
 
   @Post('/api/admin/units')
-  create(@Body({ schema: UnitRequest }) body: z.infer<typeof UnitRequest>): AdminUnitResponse {
+  @SerializeOptions({ schema: AdminUnitResponse })
+  create(@Body({ schema: UnitRequest }) body: z.infer<typeof UnitRequest>) {
     return this.handler.create(body);
   }
 
   @Patch('/api/admin/units/:id')
+  @SerializeOptions({ schema: AdminUnitResponse })
   update(
     @Param('id', { schema: UnitId }) unitId: number,
     @Body({ schema: UnitRequest }) body: z.infer<typeof UnitRequest>,
-  ): AdminUnitResponse {
+  ) {
     return this.handler.update(unitId, body);
   }
 
   @Delete('/api/admin/units/:id')
-  remove(@Param('id', { schema: UnitId }) unitId: number): AdminOkResponse {
+  @SerializeOptions({ schema: AdminOkResponse })
+  remove(@Param('id', { schema: UnitId }) unitId: number) {
     return this.handler.remove(unitId);
   }
 }
