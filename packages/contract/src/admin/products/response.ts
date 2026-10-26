@@ -9,6 +9,7 @@ export const AdminProductResponse = z.object({
   compareValue: decimalString,
   lastBought: z.string(),
   price: z.string(),
+  priceNote: z.string(),
 });
 export type AdminProductResponse = z.infer<typeof AdminProductResponse>;
 

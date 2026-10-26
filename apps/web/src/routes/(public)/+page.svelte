@@ -1,26 +1,14 @@
 <script lang="ts">
   import SearchIcon from '@lucide/svelte/icons/search';
   import * as Alert from '$lib/components/ui/alert/index.js';
-  import * as Card from '$lib/components/ui/card/index.js';
   import * as Empty from '$lib/components/ui/empty/index.js';
   import { Input } from '$lib/components/ui/input/index.js';
-
-  type Extra = { price: string; unitName: string };
-  type PromoCard = {
-    id: number;
-    name: string;
-    image: string;
-    tint: string;
-    initial: string;
-    now: string;
-    extras: Extra[];
-    priceNote: string;
-  };
+  import ProductTile, { type ProductTileData } from '$lib/ProductTile.svelte';
 
   let { data } = $props();
 
   let query = $state('');
-  let search = $state<{ products: PromoCard[]; error: string } | null>(null);
+  let search = $state<{ products: ProductTileData[]; error: string } | null>(null);
   let active = $state(-1);
   let timer = 0;
   let request = 0;
@@ -38,7 +26,7 @@
         search = { products: [], error: 'Nie udało się wyszukać produktów.' };
         return;
       }
-      const body = (await res.json()) as { products: PromoCard[] };
+      const body = (await res.json()) as { products: ProductTileData[] };
       search = { products: body.products, error: '' };
       active = -1;
     } catch {
@@ -132,34 +120,8 @@
   {/if}
 </div>
 
-{#snippet promo(card: PromoCard, index: number)}
+{#snippet promo(card: ProductTileData, index: number)}
   <li>
-    <a href="/products/{card.id}" class="block rounded-xl {index === active ? 'ring-ring ring-2' : ''}">
-      <Card.Root class="transition-colors hover:bg-muted/40">
-        <Card.Content class="flex items-start justify-between gap-4">
-          <span class="flex min-w-0 items-start gap-3">
-            {#if card.image}
-              <img class="size-12 rounded-lg object-cover" src={card.image} alt="" />
-            {:else}
-              <span class="bg-muted flex size-12 items-center justify-center rounded-lg text-sm font-medium" aria-hidden="true">{card.initial}</span>
-            {/if}
-            <span class="min-w-0">
-              <span class="block font-medium">{card.name}</span>
-              {#if card.now}
-                <span class="block text-sm">{card.now}</span>
-                {#each card.extras as extra}
-                  <span class="text-muted-foreground block text-sm">{extra.price} / {extra.unitName}</span>
-                {/each}
-              {:else}
-                <span class="text-muted-foreground block text-sm">Brak ceny</span>
-              {/if}
-            </span>
-          </span>
-          {#if card.priceNote}
-            <span class="text-muted-foreground shrink-0 text-sm">{card.priceNote}</span>
-          {/if}
-        </Card.Content>
-      </Card.Root>
-    </a>
+    <ProductTile {card} href="/products/{card.id}" active={index === active} />
   </li>
 {/snippet}

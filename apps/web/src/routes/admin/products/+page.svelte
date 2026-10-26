@@ -4,7 +4,8 @@
   import { Button } from '$lib/components/ui/button/index.js';
   import * as Empty from '$lib/components/ui/empty/index.js';
   import { Input } from '$lib/components/ui/input/index.js';
-  import { formatBoughtOn, formatPrice } from '$lib/format';
+  import { formatPrice } from '$lib/format';
+  import ProductTile from '$lib/ProductTile.svelte';
   import type { AdminProductResponse, AdminProductsResponse } from '@cowkoszyku/contract/admin/products';
 
   const LIMIT = 40;
@@ -122,21 +123,18 @@
     </Empty.Root>
   {/if}
 {:else}
-  <ul class="divide-y overflow-hidden rounded-xl border">
+  <ul class="grid gap-3">
     {#each products as product (product.id)}
       <li>
-        <a class="hover:bg-muted/50 flex items-center gap-3 px-3 py-2" href="/admin/products/{product.id}">
-          {#if product.image}
-            <img class="size-10 rounded-md object-cover" src={product.image} alt="" />
-          {:else}
-            <span class="bg-muted size-10 rounded-md" aria-hidden="true"></span>
-          {/if}
-          <span class="min-w-0 flex-1">
-            <span class="block truncate font-medium">{product.name}</span>
-            <span class="text-muted-foreground block text-sm">{product.unitName}{product.lastBought ? ` · last ${formatBoughtOn(product.lastBought)}` : ''}</span>
-          </span>
-          <span class="text-sm tabular-nums">{product.price ? formatPrice(product.price, product.compareValue, product.unitName, data.currency) : '—'}</span>
-        </a>
+        <ProductTile
+          href="/admin/products/{product.id}"
+          card={{
+            name: product.name,
+            image: product.image,
+            now: product.price ? formatPrice(product.price, product.compareValue, product.unitName, data.currency) : '',
+            priceNote: product.priceNote,
+          }}
+        />
       </li>
     {/each}
   </ul>

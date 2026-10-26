@@ -8,7 +8,7 @@ import type { z } from 'zod';
 import { nocaseOrder } from '../../../db/query.js';
 import { productAliases, productUnitConversions, products, purchases, units } from '../../../db/schema.js';
 import { fromGrosze } from '../../../domain/money.js';
-import { quotesByProduct, type QuotedPrice } from '../../../domain/price-stats.js';
+import { priceNote, quotesByProduct, type QuotedPrice } from '../../../domain/price-stats.js';
 import { KIND_PURCHASE, type Purchase, type PurchaseKind } from '../../../store/purchases/purchases.models.js';
 import { type GetAdminProductsRequest } from '@cowkoszyku/contract/admin/products';
 import { DATABASE, type Database } from './database.js';
@@ -64,6 +64,7 @@ export class AdminProductsHandler {
           compareValue: row.compareValue,
           lastBought: lastBought.get(row.id) ?? '',
           price: quote ? quote.price.toString() : '',
+          priceNote: priceNote(quote ?? null),
         };
       }),
     };

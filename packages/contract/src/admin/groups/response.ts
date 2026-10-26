@@ -19,7 +19,16 @@ export type AdminComparisonGroupsResponse = z.infer<typeof AdminComparisonGroups
 export const AdminComparisonGroupFormResponse = z.object({
   group: AdminComparisonGroupResponse,
   units: z.array(z.object({ id: z.number().int(), name: z.string(), compareValue: decimalString })),
-  products: z.array(z.object({ id: z.number().int(), name: z.string(), unitName: z.string() })),
+  products: z.array(
+    z.object({
+      id: z.number().int(),
+      name: z.string(),
+      unitName: z.string(),
+      image: z.string(),
+      now: z.string(),
+      priceNote: z.string(),
+    }),
+  ),
 });
 export type AdminComparisonGroupFormResponse = z.infer<typeof AdminComparisonGroupFormResponse>;
 

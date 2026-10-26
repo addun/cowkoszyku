@@ -12,7 +12,7 @@ import {
   isUniqueErr,
   NotFoundError,
 } from '../../domain/errors.js';
-import { lastPricesByProduct, quotesByProduct } from '../../domain/price-stats.js';
+import { lastPricesByProduct, quotesByProduct, type QuotedPrice } from '../../domain/price-stats.js';
 import type {
   ComparisonGroup,
   ComparisonOffer,
@@ -121,12 +121,21 @@ export class ComparisonGroupsRepository {
       .map((r) => r.productId);
   }
 
-  listComparisonGroupMembers(groupId: number): { id: number; name: string; unitName: string }[] {
-    return this.orm
+  listComparisonGroupMembers(groupId: number): {
+    id: number;
+    name: string;
+    unitName: string;
+    compareValue: string;
+    imagePath: string;
+    quote: QuotedPrice | null;
+  }[] {
+    const rows = this.orm
       .select({
         id: products.id,
         name: products.name,
         unitName: units.name,
+        compareValue: units.compareValue,
+        imagePath: products.imagePath,
       })
       .from(comparisonGroupProducts)
       .innerJoin(products, eq(products.id, comparisonGroupProducts.productId))
@@ -134,6 +143,18 @@ export class ComparisonGroupsRepository {
       .where(eq(comparisonGroupProducts.groupId, groupId))
       .orderBy(nocaseOrder(products.name), products.id)
       .all();
+    const quotes = quotesByProduct(
+      this.purchases.listPurchasesForProductIDs(rows.map((row) => row.id)),
+      new Date(),
+    );
+    return rows.map((row) => ({
+      id: row.id,
+      name: row.name,
+      unitName: row.unitName,
+      compareValue: row.compareValue,
+      imagePath: row.imagePath?.trim() ?? '',
+      quote: quotes.get(row.id) ?? null,
+    }));
   }
 
   addComparisonGroupProducts(groupId: number, productIds: number[]): void {

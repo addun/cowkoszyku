@@ -1,15 +1,16 @@
 import { Decimal } from 'decimal.js';
 import {
   bestRecentPrice,
+  daysAgoLabel,
   extraQuotes,
   isLast30Days as quoteIsLast30Days,
   lowestSince,
+  priceNote,
   promotionLabel,
   promotionQuote,
   WINDOW_LAST_RECORD,
 } from '../domain/price-stats.js';
 import type { PricePoint, QuotedPrice } from '../domain/price-stats.js';
-import { boughtOnDate } from '../domain/bought-on.js';
 import { aliasScopeLabel, aliasScopeValue, type ProductAlias } from '#app/store/aliases';
 import {
   chainLabel,
@@ -67,10 +68,6 @@ export function presentPromoCard(
         (q) => q.price.gte('0.01'),
       )
     : [];
-  let priceNote = '';
-  if (shown) {
-    priceNote = shown.isLast30Days ? 'najniższa cena z ostatnich 30 dni' : daysAgoLabel(shown.boughtOn);
-  }
   return {
     product: presentProduct(product),
     quote: shown,
@@ -81,7 +78,7 @@ export function presentPromoCard(
     tint: promoTint(product.id),
     initial,
     extras,
-    priceNote,
+    priceNote: priceNote(shown),
   };
 }
 
@@ -154,18 +151,6 @@ function yearLowest(points: PricePoint[]): Decimal | null {
     if (!lowest || pt.price.lt(lowest)) lowest = pt.price;
   }
   return lowest;
-}
-
-function daysAgoLabel(boughtOn: string): string {
-  const day = boughtOnDate(boughtOn);
-  if (!day) return '';
-  const then = new Date(`${day}T00:00:00`);
-  const now = new Date();
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const days = Math.round((today.getTime() - then.getTime()) / 86400000);
-  if (days <= 0) return 'dzisiaj';
-  if (days === 1) return '1 dzień temu';
-  return `${days} dni temu`;
 }
 
 export function presentPurchase(p: Purchase): Purchase & { isPurchase: boolean; isPrice: boolean } {

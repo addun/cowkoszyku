@@ -8,7 +8,7 @@ export const load = async ({ params }) => {
   const [body, catalog] = await Promise.all([
     apiGet<{
       group: { id: number; name: string; unitName: string };
-      products: { id: number; name: string; unitName: string }[];
+      products: { id: number; name: string; image: string; now: string; priceNote: string }[];
     }>(`/api/admin/comparison-groups/${params.id}`),
     apiGet<AdminProductsResponse>(`/api/admin/products.json?${search}`),
   ]);
@@ -16,5 +16,6 @@ export const load = async ({ params }) => {
     group: body.group,
     members: body.products,
     products: catalog.products,
+    currency: catalog.currency,
   };
 };
