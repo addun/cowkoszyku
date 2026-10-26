@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, SerializeOptions } from '@nestjs/common';
 import type { z } from 'zod';
 import { AdminAliasesHandler } from './aliases.handler.js';
 import {
@@ -6,10 +6,10 @@ import {
   AliasId,
   AliasesListRequest,
   ProductRefRequest,
-  type AdminAliasDeletedResponse,
-  type AdminAliasFormResponse,
-  type AdminAliasResponse,
-  type AdminAliasesResponse,
+  AdminAliasDeletedResponse,
+  AdminAliasFormResponse,
+  AdminAliasResponse,
+  AdminAliasesResponse,
 } from '@cowkoszyku/contract/admin/aliases';
 
 @Controller()
@@ -17,35 +17,41 @@ export class AdminAliasesController {
   constructor(private readonly handler: AdminAliasesHandler) {}
 
   @Get('/api/admin/aliases')
-  list(@Query({ schema: AliasesListRequest }) query: z.infer<typeof AliasesListRequest>): AdminAliasesResponse {
+  @SerializeOptions({ schema: AdminAliasesResponse })
+  list(@Query({ schema: AliasesListRequest }) query: z.infer<typeof AliasesListRequest>) {
     return this.handler.list(query);
   }
 
   @Get('/api/admin/aliases/new')
-  blank(@Query({ schema: ProductRefRequest }) query: z.infer<typeof ProductRefRequest>): AdminAliasFormResponse {
+  @SerializeOptions({ schema: AdminAliasFormResponse })
+  blank(@Query({ schema: ProductRefRequest }) query: z.infer<typeof ProductRefRequest>) {
     return this.handler.blank(query);
   }
 
   @Get('/api/admin/aliases/:id')
-  get(@Param('id', { schema: AliasId }) aliasId: number): AdminAliasFormResponse {
+  @SerializeOptions({ schema: AdminAliasFormResponse })
+  get(@Param('id', { schema: AliasId }) aliasId: number) {
     return this.handler.get(aliasId);
   }
 
   @Post('/api/admin/aliases')
-  create(@Body({ schema: AliasRequest }) body: z.infer<typeof AliasRequest>): AdminAliasResponse {
+  @SerializeOptions({ schema: AdminAliasResponse })
+  create(@Body({ schema: AliasRequest }) body: z.infer<typeof AliasRequest>) {
     return this.handler.create(body);
   }
 
   @Patch('/api/admin/aliases/:id')
+  @SerializeOptions({ schema: AdminAliasResponse })
   update(
     @Param('id', { schema: AliasId }) aliasId: number,
     @Body({ schema: AliasRequest }) body: z.infer<typeof AliasRequest>,
-  ): AdminAliasResponse {
+  ) {
     return this.handler.update(aliasId, body);
   }
 
   @Delete('/api/admin/aliases/:id')
-  remove(@Param('id', { schema: AliasId }) aliasId: number): AdminAliasDeletedResponse {
+  @SerializeOptions({ schema: AdminAliasDeletedResponse })
+  remove(@Param('id', { schema: AliasId }) aliasId: number) {
     return this.handler.remove(aliasId);
   }
 }

@@ -2,20 +2,9 @@
   import { page } from '$app/state';
   import ArrowLeftIcon from '@lucide/svelte/icons/arrow-left';
   import * as Alert from '$lib/components/ui/alert/index.js';
-  import * as Card from '$lib/components/ui/card/index.js';
   import * as Empty from '$lib/components/ui/empty/index.js';
   import PriceChart from '$lib/PriceChart.svelte';
-
-  type Extra = { price: string; unitName: string };
-  type PromoCard = {
-    id: number;
-    name: string;
-    image: string;
-    initial: string;
-    now: string;
-    extras: Extra[];
-    priceNote: string;
-  };
+  import ProductTile, { type ProductTileData } from '$lib/ProductTile.svelte';
   type ProductPage = {
     id: number;
     name: string;
@@ -24,10 +13,10 @@
     priceEyebrow: string;
     priceNote: string;
     now: string;
-    extras: Extra[];
+    extras: { price: string; unitName: string }[];
     stats: { label: string; value: string }[];
     chart: { points: { on: string; price: string }[]; from: string; to: string; symbol: string } | null;
-    related: PromoCard[];
+    related: ProductTileData[];
   };
 
   let product = $state<ProductPage | null>(null);
@@ -132,30 +121,7 @@
         <ul class="grid gap-3">
           {#each product.related as card (card.id)}
             <li>
-              <a href="/products/{card.id}" class="block rounded-xl">
-                <Card.Root class="transition-colors hover:bg-muted/40">
-                  <Card.Content class="flex items-start justify-between gap-4">
-                    <span class="flex min-w-0 items-start gap-3">
-                      {#if card.image}
-                        <img class="size-12 rounded-lg object-cover" src={card.image} alt="" />
-                      {:else}
-                        <span class="bg-muted flex size-12 items-center justify-center rounded-lg text-sm font-medium" aria-hidden="true">{card.initial}</span>
-                      {/if}
-                      <span class="min-w-0">
-                        <span class="block font-medium">{card.name}</span>
-                        {#if card.now}
-                          <span class="block text-sm">{card.now}</span>
-                        {:else}
-                          <span class="text-muted-foreground block text-sm">Brak ceny</span>
-                        {/if}
-                      </span>
-                    </span>
-                    {#if card.priceNote}
-                      <span class="text-muted-foreground shrink-0 text-sm">{card.priceNote}</span>
-                    {/if}
-                  </Card.Content>
-                </Card.Root>
-              </a>
+              <ProductTile {card} href="/products/{card.id}" />
             </li>
           {/each}
         </ul>

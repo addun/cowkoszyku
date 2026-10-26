@@ -20,6 +20,23 @@ export function isLast30Days(q: QuotedPrice): boolean {
   return q.window === WINDOW_LAST_30_DAYS;
 }
 
+export function daysAgoLabel(boughtOn: string): string {
+  const day = boughtOnDate(boughtOn);
+  if (!day) return '';
+  const then = new Date(`${day}T00:00:00`);
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const days = Math.round((today.getTime() - then.getTime()) / 86400000);
+  if (days <= 0) return 'dzisiaj';
+  if (days === 1) return '1 dzień temu';
+  return `${days} dni temu`;
+}
+
+export function priceNote(quote: QuotedPrice | null): string {
+  if (!quote) return '';
+  return isLast30Days(quote) ? 'Najniższa z 30 dni' : daysAgoLabel(quote.boughtOn);
+}
+
 export type UnitQuote = {
   unitName: string;
   price: Decimal;

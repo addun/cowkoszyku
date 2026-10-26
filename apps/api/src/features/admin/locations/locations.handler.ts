@@ -8,58 +8,45 @@ import {
   StoresListRequest,
   type StoreMergeRequest,
   type StoreRequest,
-  AdminChainResponse,
-  AdminChainsResponse,
-  AdminCreatedStoreResponse,
-  AdminNewStoreResponse,
-  AdminOkResponse,
-  AdminStoreFormResponse,
-  AdminStoreMergeOptionsResponse,
-  AdminStoreMergePlanResponse,
-  AdminStoreMergedResponse,
-  AdminStoreResponse,
-  AdminStoresResponse,
 } from '@cowkoszyku/contract/admin/locations';
 
 @Injectable()
 export class AdminLocationsHandler {
   constructor(private readonly locations: LocationsRepository) {}
 
-  chains(): AdminChainsResponse {
-    return AdminChainsResponse.parse({ retailChains: this.locations.listRetailChains().map(presentChain) });
+  chains() {
+    return { retailChains: this.locations.listRetailChains().map(presentChain) };
   }
 
-  chain(chainId: number): AdminChainResponse {
-    return AdminChainResponse.parse(presentChain(this.locations.getRetailChain(chainId)));
+  chain(chainId: number) {
+    return presentChain(this.locations.getRetailChain(chainId));
   }
 
-  createChain(body: z.infer<typeof RetailChainRequest>): AdminChainResponse {
-    return AdminChainResponse.parse(
-      presentChain(this.locations.createRetailChain(body.name, body.legal_name, body.tax_id)),
-    );
+  createChain(body: z.infer<typeof RetailChainRequest>) {
+    return presentChain(this.locations.createRetailChain(body.name, body.legal_name, body.tax_id));
   }
 
-  updateChain(chainId: number, body: z.infer<typeof RetailChainRequest>): AdminChainResponse {
+  updateChain(chainId: number, body: z.infer<typeof RetailChainRequest>) {
     this.locations.updateRetailChain(chainId, body.name, body.legal_name, body.tax_id);
-    return AdminChainResponse.parse(presentChain(this.locations.getRetailChain(chainId)));
+    return presentChain(this.locations.getRetailChain(chainId));
   }
 
-  removeChain(chainId: number): AdminOkResponse {
+  removeChain(chainId: number) {
     const chain = this.locations.getRetailChain(chainId);
     if (chain.storeCount > 0) throw new ConflictException(`Cannot delete “${chain.name}” while a store still uses it.`);
     this.locations.deleteRetailChain(chainId);
-    return AdminOkResponse.parse({ ok: true });
+    return { ok: true };
   }
 
-  stores(query: z.infer<typeof StoresListRequest>): AdminStoresResponse {
-    return AdminStoresResponse.parse({
+  stores(query: z.infer<typeof StoresListRequest>) {
+    return {
       stores: this.locations.listStoresPage(query.offset, query.limit, query.q).map(presentStore),
       offset: query.offset,
       limit: query.limit,
-    });
+    };
   }
 
-  newStore(query: z.infer<typeof NewStoreRequest>): AdminNewStoreResponse {
+  newStore(query: z.infer<typeof NewStoreRequest>) {
     const store = emptyStore();
     store.name = query.name;
     store.streetName = query.street_name;
@@ -68,21 +55,21 @@ export class AdminLocationsHandler {
     store.postalCode = query.postal_code;
     store.city = query.city;
     store.externalId = query.external_id;
-    return AdminNewStoreResponse.parse({
+    return {
       store: presentStore(store),
       retailChains: this.locations.listRetailChains().map(presentChain),
       next: receiptReturnPath(query.next),
-    });
+    };
   }
 
-  store(storeId: number): AdminStoreFormResponse {
-    return AdminStoreFormResponse.parse({
+  store(storeId: number) {
+    return {
       store: presentStore(this.locations.getStore(storeId)),
       retailChains: this.locations.listRetailChains().map(presentChain),
-    });
+    };
   }
 
-  createStore(body: z.infer<typeof StoreRequest>): AdminCreatedStoreResponse {
+  createStore(body: z.infer<typeof StoreRequest>) {
     const created = this.locations.createStore(
       body.name,
       body.street_name,
@@ -95,10 +82,10 @@ export class AdminLocationsHandler {
       body.lat,
       body.lng,
     );
-    return AdminCreatedStoreResponse.parse({ ...presentStore(created), next: receiptReturnPath(body.next) });
+    return { ...presentStore(created), next: receiptReturnPath(body.next) };
   }
 
-  updateStore(storeId: number, body: z.infer<typeof StoreRequest>): AdminStoreResponse {
+  updateStore(storeId: number, body: z.infer<typeof StoreRequest>) {
     this.locations.updateStore(
       storeId,
       body.name,
@@ -112,34 +99,34 @@ export class AdminLocationsHandler {
       body.lat,
       body.lng,
     );
-    return AdminStoreResponse.parse(presentStore(this.locations.getStore(storeId)));
+    return presentStore(this.locations.getStore(storeId));
   }
 
-  removeStore(storeId: number): AdminOkResponse {
+  removeStore(storeId: number) {
     const store = this.locations.getStore(storeId);
     if (store.purchaseCount > 0) throw new ConflictException(`Cannot delete “${store.name}” while a purchase still uses it.`);
     this.locations.deleteStore(storeId);
-    return AdminOkResponse.parse({ ok: true });
+    return { ok: true };
   }
 
-  mergeOptions(storeId: number): AdminStoreMergeOptionsResponse {
+  mergeOptions(storeId: number) {
     const store = this.locations.getStore(storeId);
-    return AdminStoreMergeOptionsResponse.parse({
+    return {
       store: presentStore(store),
       targets: [],
-    });
+    };
   }
 
-  mergePlan(storeId: number, intoId: number): AdminStoreMergePlanResponse {
+  mergePlan(storeId: number, intoId: number) {
     const plan = this.locations.mergePlan(intoId, storeId);
-    return AdminStoreMergePlanResponse.parse({
+    return {
       plan: { ...plan, into: presentStore(plan.into), from: presentStore(plan.from) },
-    });
+    };
   }
 
-  merge(storeId: number, body: z.infer<typeof StoreMergeRequest>): AdminStoreMergedResponse {
+  merge(storeId: number, body: z.infer<typeof StoreMergeRequest>) {
     this.locations.mergeStores(body.into_id, storeId);
-    return AdminStoreMergedResponse.parse({ id: body.into_id });
+    return { id: body.into_id };
   }
 }
 

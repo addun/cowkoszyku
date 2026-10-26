@@ -1,5 +1,6 @@
 <script lang="ts">
   import { Button } from '$lib/components/ui/button/index.js';
+  import ProductTile from '$lib/ProductTile.svelte';
   import * as Empty from '$lib/components/ui/empty/index.js';
   import * as Field from '$lib/components/ui/field/index.js';
   import { Input } from '$lib/components/ui/input/index.js';
@@ -57,18 +58,26 @@
         </Empty.Header>
       </Empty.Root>
     {:else}
-      <ul class="divide-y overflow-hidden rounded-xl border">
+      <ul class="grid gap-3">
         {#each products as product (text(obj(product).id))}
           {@const row = obj(product)}
-          <li class="flex items-center gap-3 px-3 py-2">
-            <a class="min-w-0 flex-1 hover:underline" href="/admin/products/{row.id}">
-              <span class="block truncate font-medium">{text(row.name)}</span>
-              <span class="text-muted-foreground block text-sm">{text(row.unitName)}</span>
-            </a>
-            <form method="post" action="?/remove">
-              <input type="hidden" name="product_id" value={text(row.id)} />
-              <Button type="submit" variant="ghost" size="sm">Remove</Button>
-            </form>
+          <li>
+            <ProductTile
+              href="/admin/products/{row.id}"
+              card={{
+                name: text(row.name),
+                image: text(row.image),
+                now: text(row.now),
+                priceNote: text(row.priceNote),
+              }}
+            >
+              {#snippet actions()}
+                <form method="post" action="?/remove">
+                  <input type="hidden" name="product_id" value={text(row.id)} />
+                  <Button type="submit" variant="ghost" size="sm">Remove</Button>
+                </form>
+              {/snippet}
+            </ProductTile>
           </li>
         {/each}
       </ul>

@@ -1,14 +1,14 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, SerializeOptions } from '@nestjs/common';
 import type { z } from 'zod';
 import {
   ComparisonGroupProductsRequest,
   ComparisonGroupRequest,
   ComparisonGroupId,
   ProductId,
-  type AdminComparisonGroupDeletedResponse,
-  type AdminComparisonGroupFormResponse,
-  type AdminComparisonGroupResponse,
-  type AdminComparisonGroupsResponse,
+  AdminComparisonGroupDeletedResponse,
+  AdminComparisonGroupFormResponse,
+  AdminComparisonGroupResponse,
+  AdminComparisonGroupsResponse,
 } from '@cowkoszyku/contract/admin/groups';
 import { AdminGroupsHandler } from './groups.handler.js';
 
@@ -17,51 +17,59 @@ export class AdminGroupsController {
   constructor(private readonly handler: AdminGroupsHandler) {}
 
   @Get('/api/admin/comparison-groups')
-  list(): AdminComparisonGroupsResponse {
+  @SerializeOptions({ schema: AdminComparisonGroupsResponse })
+  list() {
     return this.handler.list();
   }
 
   @Get('/api/admin/comparison-groups/new')
-  blank(): AdminComparisonGroupFormResponse {
+  @SerializeOptions({ schema: AdminComparisonGroupFormResponse })
+  blank() {
     return this.handler.blank();
   }
 
   @Get('/api/admin/comparison-groups/:id')
-  get(@Param('id', { schema: ComparisonGroupId }) groupId: number): AdminComparisonGroupFormResponse {
+  @SerializeOptions({ schema: AdminComparisonGroupFormResponse })
+  get(@Param('id', { schema: ComparisonGroupId }) groupId: number) {
     return this.handler.get(groupId);
   }
 
   @Post('/api/admin/comparison-groups')
-  create(@Body({ schema: ComparisonGroupRequest }) body: z.infer<typeof ComparisonGroupRequest>): AdminComparisonGroupResponse {
+  @SerializeOptions({ schema: AdminComparisonGroupResponse })
+  create(@Body({ schema: ComparisonGroupRequest }) body: z.infer<typeof ComparisonGroupRequest>) {
     return this.handler.create(body);
   }
 
   @Patch('/api/admin/comparison-groups/:id')
+  @SerializeOptions({ schema: AdminComparisonGroupResponse })
   update(
     @Param('id', { schema: ComparisonGroupId }) groupId: number,
     @Body({ schema: ComparisonGroupRequest }) body: z.infer<typeof ComparisonGroupRequest>,
-  ): AdminComparisonGroupResponse {
+  ) {
     return this.handler.update(groupId, body);
   }
 
   @Post('/api/admin/comparison-groups/:id/products')
+  @SerializeOptions({ schema: AdminComparisonGroupResponse })
   addProducts(
     @Param('id', { schema: ComparisonGroupId }) groupId: number,
     @Body({ schema: ComparisonGroupProductsRequest }) body: z.infer<typeof ComparisonGroupProductsRequest>,
-  ): AdminComparisonGroupResponse {
+  ) {
     return this.handler.addProducts(groupId, body.product_id);
   }
 
   @Delete('/api/admin/comparison-groups/:id/products/:productId')
+  @SerializeOptions({ schema: AdminComparisonGroupResponse })
   removeProduct(
     @Param('id', { schema: ComparisonGroupId }) groupId: number,
     @Param('productId', { schema: ProductId }) productId: number,
-  ): AdminComparisonGroupResponse {
+  ) {
     return this.handler.removeProduct(groupId, productId);
   }
 
   @Delete('/api/admin/comparison-groups/:id')
-  remove(@Param('id', { schema: ComparisonGroupId }) groupId: number): AdminComparisonGroupDeletedResponse {
+  @SerializeOptions({ schema: AdminComparisonGroupDeletedResponse })
+  remove(@Param('id', { schema: ComparisonGroupId }) groupId: number) {
     return this.handler.remove(groupId);
   }
 }

@@ -3,6 +3,7 @@
   import { Button } from '$lib/components/ui/button/index.js';
   import * as Empty from '$lib/components/ui/empty/index.js';
   import { formatBoughtOn, formatMoneyAmount, formatQty } from '$lib/format';
+  import ProductTile from '$lib/ProductTile.svelte';
   import { resourceView, arr, num, obj, text } from '$lib/admin/view';
 
   let props = $props();
@@ -52,26 +53,24 @@
         </Empty.Header>
       </Empty.Root>
     {:else}
-      <ul class="divide-y overflow-hidden rounded-xl border">
+      <ul class="grid gap-3">
         {#each purchases as purchase (text(obj(purchase).id))}
           {@const row = obj(purchase)}
-          <li class="flex flex-col gap-1 px-3 py-2">
-            <a class="hover:bg-muted/50 -mx-3 flex items-center gap-3 px-3 py-1" href="/admin/products/{row.productId}">
-              {#if row.imagePath}
-                <img class="size-10 rounded-md object-cover" src="/images/{row.imagePath}" alt="" />
-              {:else}
-                <span class="bg-muted size-10 rounded-md" aria-hidden="true"></span>
-              {/if}
-              <span class="min-w-0 flex-1">
-                <span class="block font-medium">{text(row.productName)}</span>
-                <span class="text-muted-foreground text-sm">{formatQty(text(row.quantity))} {text(row.unitName)}</span>
-              </span>
-              <span class="text-sm tabular-nums">{formatMoneyAmount(text(row.amount), symbol)}</span>
-            </a>
-            <span class="text-right">
-              <Button variant="ghost" size="sm" href="/admin/purchases/{row.id}/edit">Edit</Button>
-              <Button variant="ghost" size="sm" class="text-destructive" href="/admin/purchases/{row.id}/delete">Delete</Button>
-            </span>
+          <li>
+            <ProductTile
+              href="/admin/products/{row.productId}"
+              card={{
+                name: text(row.productName),
+                image: row.imagePath ? `/images/${text(row.imagePath)}` : '',
+                now: formatMoneyAmount(text(row.amount), symbol),
+                priceNote: `${formatQty(text(row.quantity))} ${text(row.unitName)}`.trim(),
+              }}
+            >
+              {#snippet actions()}
+                <Button variant="ghost" size="sm" href="/admin/purchases/{row.id}/edit">Edit</Button>
+                <Button variant="ghost" size="sm" class="text-destructive" href="/admin/purchases/{row.id}/delete">Delete</Button>
+              {/snippet}
+            </ProductTile>
           </li>
         {/each}
       </ul>

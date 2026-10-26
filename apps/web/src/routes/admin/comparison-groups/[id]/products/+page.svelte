@@ -2,18 +2,21 @@
   import Notice from '$lib/admin/Notice.svelte';
   import { Button } from '$lib/components/ui/button/index.js';
   import { Input } from '$lib/components/ui/input/index.js';
+  import { formatPrice } from '$lib/format';
+  import ProductTile from '$lib/ProductTile.svelte';
   import type { AdminProductResponse, AdminProductsResponse } from '@cowkoszyku/contract/admin/products';
 
   const LIMIT = 40;
 
-  type Member = { id: number; name: string; unitName: string };
+  type Member = { id: number; name: string; image: string; now: string; priceNote: string };
 
   let { data } = $props();
 
-  let members = $state<Member[]>(data.members.map((member) => ({ id: member.id, name: member.name, unitName: member.unitName })));
+  let members = $state<Member[]>(data.members.map((member) => ({ id: member.id, name: member.name, image: member.image, now: member.now, priceNote: member.priceNote })));
   let rows = $state<AdminProductResponse[]>([...data.products]);
   let seenGroup = $state(data.group.id);
   let q = $state('');
+  let memberQuery = $state('');
   let offset = $state(data.products.length);
   let moreFull = $state(data.products.length === LIMIT);
   let loading = $state(false);
@@ -24,13 +27,19 @@
 
   const memberIds = $derived(new Set(members.map((member) => member.id)));
   const available = $derived(rows.filter((product) => !memberIds.has(product.id)));
+  const visibleMembers = $derived.by(() => {
+    const query = memberQuery.trim().toLocaleLowerCase();
+    if (!query) return members;
+    return members.filter((member) => member.name.toLocaleLowerCase().includes(query));
+  });
 
   $effect(() => {
     if (data.group.id === seenGroup) return;
     seenGroup = data.group.id;
-    members = data.members.map((member) => ({ id: member.id, name: member.name, unitName: member.unitName }));
+    members = data.members.map((member) => ({ id: member.id, name: member.name, image: member.image, now: member.now, priceNote: member.priceNote }));
     rows = [...data.products];
     q = '';
+    memberQuery = '';
     offset = data.products.length;
     moreFull = data.products.length === LIMIT;
     error = '';
@@ -85,7 +94,13 @@
 
   async function add(product: AdminProductResponse) {
     if (pendingId || memberIds.has(product.id)) return;
-    const member = { id: product.id, name: product.name, unitName: product.unitName };
+    const member = {
+      id: product.id,
+      name: product.name,
+      image: product.image,
+      now: product.price ? formatPrice(product.price, product.compareValue, product.unitName, data.currency) : '',
+      priceNote: product.priceNote,
+    };
     members = [...members, member];
     pendingId = product.id;
     error = '';
@@ -139,20 +154,33 @@
 
   <div class="grid grid-cols-1 gap-4 lg:h-[32rem] lg:grid-cols-2">
     <section class="flex h-72 min-h-0 flex-col overflow-hidden rounded-xl border lg:h-full">
-      <h2 class="border-b px-3 py-2 text-sm font-medium">In group</h2>
+      <div class="flex flex-col gap-2 border-b px-3 py-2">
+        <h2 class="text-sm font-medium">In group</h2>
+        <label class="sr-only" for="member-q">Find in group</label>
+        <Input
+          id="member-q"
+          type="search"
+          class="w-full"
+          placeholder="Find in group"
+          autocomplete="off"
+          bind:value={memberQuery}
+        />
+      </div>
       {#if members.length === 0}
         <p class="text-muted-foreground px-3 py-6 text-sm">No products in this group yet.</p>
+      {:else if visibleMembers.length === 0}
+        <p class="text-muted-foreground px-3 py-6 text-sm">No product matches “{memberQuery.trim()}”.</p>
       {:else}
-        <ul class="min-h-0 flex-1 divide-y overflow-auto">
-          {#each members as member (member.id)}
-            <li class="flex items-center gap-2 px-3 py-2">
-              <span class="min-w-0 flex-1">
-                <span class="block truncate font-medium">{member.name}</span>
-                <span class="text-muted-foreground block text-sm">{member.unitName}</span>
-              </span>
-              <Button type="button" variant="ghost" size="sm" disabled={pendingId === member.id} onclick={() => remove(member)}>
-                Remove
-              </Button>
+        <ul class="flex min-h-0 flex-1 flex-col gap-2 overflow-auto p-2">
+          {#each visibleMembers as member (member.id)}
+            <li>
+              <ProductTile href="/admin/products/{member.id}" card={member}>
+                {#snippet actions()}
+                  <Button type="button" variant="ghost" size="sm" disabled={pendingId === member.id} onclick={() => remove(member)}>
+                    Remove
+                  </Button>
+                {/snippet}
+              </ProductTile>
             </li>
           {/each}
         </ul>

@@ -81,10 +81,7 @@
 <div class="flex flex-col gap-4">
   <div class="flex flex-wrap items-start justify-between gap-3">
     {#if filter}
-      <div class="flex flex-col gap-1">
-        <h1 class="text-2xl font-semibold tracking-tight">Aliases for {text(filter.name)}</h1>
-        <Button variant="link" class="h-auto px-0" href="/admin/aliases">All aliases</Button>
-      </div>
+      <h1 class="text-2xl font-semibold tracking-tight">Aliases for {text(filter.name)}</h1>
       <Button href="/admin/aliases/new?product={filter.id}">Add alias</Button>
     {:else}
       <h1 class="text-2xl font-semibold tracking-tight">Aliases</h1>

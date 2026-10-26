@@ -4,7 +4,7 @@ import type { z } from 'zod';
 import { nocaseOrder } from '../../../db/query.js';
 import { settings, units } from '../../../db/schema.js';
 import { InvalidUnitError } from '../../../domain/errors.js';
-import { type UpdateAdminSettingsRequest, AdminSettingsResponse } from '@cowkoszyku/contract/admin/settings';
+import { type UpdateAdminSettingsRequest } from '@cowkoszyku/contract/admin/settings';
 import { DATABASE, type Database } from './database.js';
 
 type SettingKey = 'ocr_model' | 'piece_unit_id' | 'weight_unit_id';
@@ -19,7 +19,7 @@ const unitUseCount = sql<number>`cast((
 export class AdminSettingsHandler {
   constructor(@Inject(DATABASE) private readonly database: Database) {}
 
-  get(): AdminSettingsResponse {
+  get() {
     const rows = this.database
       .select({
         id: units.id,
@@ -32,17 +32,17 @@ export class AdminSettingsHandler {
       .all();
     const ids = new Set(rows.map((row) => row.id));
 
-    return AdminSettingsResponse.parse({
+    return {
       ocrModel: this.read('ocr_model'),
       units: rows,
       defaults: {
         pieceId: this.savedUnitId('piece_unit_id', ids),
         weightId: this.savedUnitId('weight_unit_id', ids),
       },
-    });
+    };
   }
 
-  update(body: z.infer<typeof UpdateAdminSettingsRequest>): AdminSettingsResponse {
+  update(body: z.infer<typeof UpdateAdminSettingsRequest>) {
     this.requireUnit(body.piece_unit_id);
     this.requireUnit(body.weight_unit_id);
     this.write('ocr_model', body.ocr_model);

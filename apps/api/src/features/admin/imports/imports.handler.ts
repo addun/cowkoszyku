@@ -4,12 +4,7 @@ import { NotFoundError } from '../../../domain/errors.js';
 import { fetchBiedronkaShops, importedShopsFromBiedronka } from '../../../imports/biedronka-shops.js';
 import { LocationsRepository, type RetailChain } from '#app/store/locations';
 import { presentChain } from '../../../web/present.js';
-import {
-  type BiedronkaShopsImportRequest,
-  AdminBiedronkaImportedResponse,
-  AdminBiedronkaImportResponse,
-  AdminImportsResponse,
-} from '@cowkoszyku/contract/admin/imports';
+import { type BiedronkaShopsImportRequest } from '@cowkoszyku/contract/admin/imports';
 
 @Injectable()
 export class AdminImportsHandler {
@@ -17,8 +12,8 @@ export class AdminImportsHandler {
 
   constructor(private readonly locations: LocationsRepository) {}
 
-  list(): AdminImportsResponse {
-    return AdminImportsResponse.parse({
+  list() {
+    return {
       importers: [
         {
           id: 'biedronka',
@@ -27,18 +22,18 @@ export class AdminImportsHandler {
           href: '/admin/retail-chains/imports/biedronka',
         },
       ],
-    });
+    };
   }
 
-  biedronka(): AdminBiedronkaImportResponse {
+  biedronka() {
     const chains = this.locations.listRetailChains();
-    return AdminBiedronkaImportResponse.parse({
+    return {
       retailChains: chains.map(presentChain),
       retailChainId: defaultChainId(chains),
-    });
+    };
   }
 
-  async importBiedronka(body: z.infer<typeof BiedronkaShopsImportRequest>): Promise<AdminBiedronkaImportedResponse> {
+  async importBiedronka(body: z.infer<typeof BiedronkaShopsImportRequest>) {
     try {
       this.locations.getRetailChain(body.retail_chain_id);
     } catch (err) {
@@ -58,7 +53,7 @@ export class AdminImportsHandler {
       const counts = this.locations.upsertImportedStores(body.retail_chain_id, imported);
       const result = { ...counts, skipped: shops.length - imported.length, total: shops.length };
       this.log.log(`biedronka shops: ${result.created} created, ${result.updated} updated, ${result.skipped} skipped`);
-      return AdminBiedronkaImportedResponse.parse({ retailChainId: body.retail_chain_id, result });
+      return { retailChainId: body.retail_chain_id, result };
     } catch (err) {
       this.log.warn(`biedronka shops save failed: ${err instanceof Error ? err.message : String(err)}`);
       throw err;

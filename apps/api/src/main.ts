@@ -1,6 +1,6 @@
 import 'reflect-metadata';
-import { NestFactory } from '@nestjs/core';
-import { BadRequestException, StandardSchemaValidationPipe } from '@nestjs/common';
+import { NestFactory, Reflector } from '@nestjs/core';
+import { BadRequestException, StandardSchemaSerializerInterceptor, StandardSchemaValidationPipe } from '@nestjs/common';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { json, urlencoded } from 'express';
 import { AppModule } from './app.module.js';
@@ -14,6 +14,7 @@ async function bootstrap(): Promise<void> {
   app.enableCors({ origin: WEB_ORIGINS });
   app.use(json({ limit: '12mb' }));
   app.use(urlencoded({ extended: true, limit: '12mb' }));
+  app.useGlobalInterceptors(new StandardSchemaSerializerInterceptor(app.get(Reflector)));
   app.useGlobalPipes(
     new StandardSchemaValidationPipe({
       exceptionFactory: (issues) =>

@@ -8,10 +8,6 @@ import { presentAlias, presentChain } from '../../../web/present.js';
 import {
   type AliasRequest,
   AliasesListRequest,
-  AdminAliasDeletedResponse,
-  AdminAliasFormResponse,
-  AdminAliasResponse,
-  AdminAliasesResponse,
 } from '@cowkoszyku/contract/admin/aliases';
 
 @Injectable()
@@ -22,7 +18,7 @@ export class AdminAliasesHandler {
     private readonly locations: LocationsRepository,
   ) {}
 
-  list(query: z.infer<typeof AliasesListRequest>): AdminAliasesResponse {
+  list(query: z.infer<typeof AliasesListRequest>) {
     const filter = query.product > 0 ? this.products.getProduct(query.product) : null;
     const rows = this.aliases.listAliasesPage({
       productId: filter?.id ?? 0,
@@ -30,17 +26,17 @@ export class AdminAliasesHandler {
       offset: query.offset,
       limit: query.limit,
     });
-    return AdminAliasesResponse.parse({
+    return {
       aliases: rows.map(presentAlias),
       filter,
       productQuery: filter ? `?product=${filter.id}` : '',
       query: query.q,
       offset: query.offset,
       limit: query.limit,
-    });
+    };
   }
 
-  blank(query: { product: number }): AdminAliasFormResponse {
+  blank(query: { product: number }) {
     const lookups = this.lookups();
     const alias = emptyAlias();
     let locked: Product | null = null;
@@ -48,41 +44,39 @@ export class AdminAliasesHandler {
       locked = this.products.getProduct(query.product);
       alias.productId = locked.id;
     }
-    return AdminAliasFormResponse.parse({
+    return {
       ...lookups,
       alias: presentAlias(alias),
       lockedProduct: locked,
       fromProduct: query.product,
-    });
+    };
   }
 
-  get(aliasId: number): AdminAliasFormResponse {
-    return AdminAliasFormResponse.parse({
+  get(aliasId: number) {
+    return {
       ...this.lookups(),
       alias: presentAlias(this.aliases.getAlias(aliasId)),
       lockedProduct: null,
       fromProduct: 0,
-    });
+    };
   }
 
-  create(body: z.infer<typeof AliasRequest>): AdminAliasResponse {
+  create(body: z.infer<typeof AliasRequest>) {
     const { storeID, chainID } = parseAliasScope(body.scope);
-    return AdminAliasResponse.parse(
-      presentAlias(this.aliases.createAlias(body.product_id, storeID || null, chainID || null, body.alias)),
-    );
+    return presentAlias(this.aliases.createAlias(body.product_id, storeID || null, chainID || null, body.alias));
   }
 
-  update(aliasId: number, body: z.infer<typeof AliasRequest>): AdminAliasResponse {
+  update(aliasId: number, body: z.infer<typeof AliasRequest>) {
     this.aliases.getAlias(aliasId);
     const { storeID, chainID } = parseAliasScope(body.scope);
     this.aliases.updateAlias(aliasId, body.product_id, storeID || null, chainID || null, body.alias);
-    return AdminAliasResponse.parse(presentAlias(this.aliases.getAlias(aliasId)));
+    return presentAlias(this.aliases.getAlias(aliasId));
   }
 
-  remove(aliasId: number): AdminAliasDeletedResponse {
+  remove(aliasId: number) {
     const alias = this.aliases.getAlias(aliasId);
     this.aliases.deleteAlias(aliasId);
-    return AdminAliasDeletedResponse.parse({ ok: true, alias: alias.alias });
+    return { ok: true, alias: alias.alias };
   }
 
   private lookups() {
