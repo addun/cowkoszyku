@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { and, count, eq, isNull } from 'drizzle-orm';
+import { and, count, eq, isNull, sql } from 'drizzle-orm';
 import { Decimal } from 'decimal.js';
 import { DatabaseService } from '../../db/database.service.js';
 import { changesOf, countOf, lastId, nocaseEq, nocaseOrder } from '../../db/query.js';
@@ -18,7 +18,15 @@ import { fromGrosze } from '../../domain/money.js';
 import { quotesByProduct } from '../../domain/price-stats.js';
 import { stripAliasWhitespace, type ProductAlias } from '../aliases/aliases.models.js';
 import { KIND_PURCHASE } from '../purchases/purchases.models.js';
-import { type MergePlan, type Product, type ProductConversion, type ProductListItem, type ProductQuote } from './products.models.js';
+import {
+  duplicateProductGroups,
+  type MergePlan,
+  type Product,
+  type ProductConversion,
+  type ProductDuplicateGroup,
+  type ProductListItem,
+  type ProductQuote,
+} from './products.models.js';
 import { AliasesRepository } from '#app/store/aliases';
 import { ComparisonGroupsRepository } from '#app/store/comparison-groups';
 import { LocationsRepository } from '#app/store/locations';
@@ -71,6 +79,13 @@ export class ProductsRepository {
     });
     const out = limit > 0 ? items.slice(0, limit) : items;
     return out.map((it) => ({ product: this.asProduct(it), quote: it.quote }));
+  }
+
+  listDuplicateProducts(): ProductDuplicateGroup[] {
+    const rows = this.productQuery()
+      .where(sql`trim(${products.ean}) != ''`)
+      .all();
+    return duplicateProductGroups(rows);
   }
 
   getProduct(id: number): Product {

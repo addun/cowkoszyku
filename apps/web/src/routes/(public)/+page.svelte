@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { isHttpError } from '@sveltejs/kit';
-  import { lookupProducts } from '$lib/api/public/lookup';
+  import { goto } from '$app/navigation';
+  import { page } from '$app/state';
   import SearchIcon from '@lucide/svelte/icons/search';
   import * as Alert from '$lib/components/ui/alert/index.js';
   import * as Empty from '$lib/components/ui/empty/index.js';
@@ -9,45 +9,40 @@
 
   let { data } = $props();
 
-  let query = $state('');
-  let search = $state<{ products: ProductTileData[]; error: string } | null>(null);
+  let query = $state(data.query);
   let active = $state(-1);
   let timer = 0;
-  let request = 0;
 
-  const mode = $derived(query.trim() && search ? 'search' : 'popular');
-  const products = $derived(mode === 'search' && search ? search.products : data.products);
-  const error = $derived(mode === 'search' && search ? search.error : data.error);
+  const q = $derived(query.trim());
+  const mode = $derived(q && (q === data.query || data.query) ? 'search' : 'popular');
+  const products = $derived(mode === 'search' ? data.products : data.popular);
+  const error = $derived(mode === 'search' ? (q === data.query ? data.searchError : '') : data.error);
 
-  async function load(q: string) {
-    const id = ++request;
-    try {
-      const body = await lookupProducts(q);
-      if (id !== request) return;
-      search = { products: body.products, error: '' };
-      active = -1;
-    } catch (err) {
-      if (id !== request) return;
-      search = {
-        products: [],
-        error: isHttpError(err) && err.status !== 503 ? 'Nie udało się wyszukać produktów.' : 'API jest niedostępne.',
-      };
-    }
+  $effect(() => {
+    void data.query;
+    active = -1;
+  });
+
+  function commit(value: string) {
+    const url = new URL(page.url);
+    if (value) url.searchParams.set('q', value);
+    else url.searchParams.delete('q');
+    const href = `${url.pathname}${url.search}`;
+    if (href === `${page.url.pathname}${page.url.search}`) return;
+    void goto(href, { replaceState: true, keepFocus: true, noScroll: true }).catch(() => {});
   }
 
   function onInput(event: Event) {
     const value = (event.currentTarget as HTMLInputElement).value;
     query = value;
-    const q = value.trim();
+    const next = value.trim();
     clearTimeout(timer);
-    if (!q) {
-      request += 1;
+    if (!next) {
       active = -1;
+      commit('');
       return;
     }
-    timer = window.setTimeout(() => {
-      void load(q);
-    }, 150);
+    timer = window.setTimeout(() => commit(next), 150);
   }
 
   function onKeydown(event: KeyboardEvent) {

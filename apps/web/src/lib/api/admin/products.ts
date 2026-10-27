@@ -9,7 +9,7 @@ import type {
   MergeRequest,
   UnitIdRequest,
 } from '@cowkoszyku/contract/admin/catalog';
-import type { AdminProductsResponse, GetAdminProductsRequest } from '@cowkoszyku/contract/admin/products';
+import type { AdminProductDuplicatesResponse, AdminProductsResponse, GetAdminProductsRequest } from '@cowkoszyku/contract/admin/products';
 import { sendGet, sendPost, sendPatch, sendDelete, pathId, type Id } from '$lib/common/http';
 
 export function listProducts(query: GetAdminProductsRequest = {}) {
@@ -17,6 +17,10 @@ export function listProducts(query: GetAdminProductsRequest = {}) {
     queryParams: query,
     body: null,
   });
+}
+
+export function listProductDuplicates(): Promise<AdminProductDuplicatesResponse> {
+  return sendGet('/api/admin/products/duplicates', { queryParams: null, body: null });
 }
 
 export function getNewProduct(): Promise<AdminCatalogBlankResponse> {

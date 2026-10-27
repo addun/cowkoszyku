@@ -83,11 +83,14 @@
 {/if}
 
 <div class="flex flex-col gap-4">
-  <div>
-    <h1 class="text-2xl font-semibold tracking-tight">Products</h1>
-    {#if data.unitName}
-      <p class="text-muted-foreground text-sm">{data.unitName} · <a class="underline underline-offset-4" href="/admin/products">All products</a></p>
-    {/if}
+  <div class="flex flex-wrap items-start justify-between gap-3">
+    <div>
+      <h1 class="text-2xl font-semibold tracking-tight">Products</h1>
+      {#if data.unitName}
+        <p class="text-muted-foreground text-sm">{data.unitName} · <a class="underline underline-offset-4" href="/admin/products">All products</a></p>
+      {/if}
+    </div>
+    <Button variant="outline" href="/admin/products/duplicates">Find duplicates</Button>
   </div>
   <form class="flex gap-2" method="get" action="/admin">
     <label class="sr-only" for="q">Search</label>
