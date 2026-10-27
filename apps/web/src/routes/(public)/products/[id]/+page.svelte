@@ -1,25 +1,14 @@
 <script lang="ts">
+  import { isHttpError } from '@sveltejs/kit';
   import { page } from '$app/state';
+  import { lookupProduct, type LookupProductPage } from '$lib/api/public/lookup';
   import ArrowLeftIcon from '@lucide/svelte/icons/arrow-left';
   import * as Alert from '$lib/components/ui/alert/index.js';
   import * as Empty from '$lib/components/ui/empty/index.js';
   import PriceChart from '$lib/PriceChart.svelte';
-  import ProductTile, { type ProductTileData } from '$lib/ProductTile.svelte';
-  type ProductPage = {
-    id: number;
-    name: string;
-    image: string;
-    initial: string;
-    priceEyebrow: string;
-    priceNote: string;
-    now: string;
-    extras: { price: string; unitName: string }[];
-    stats: { label: string; value: string }[];
-    chart: { points: { on: string; price: string }[]; from: string; to: string; symbol: string } | null;
-    related: ProductTileData[];
-  };
+  import ProductTile from '$lib/ProductTile.svelte';
 
-  let product = $state<ProductPage | null>(null);
+  let product = $state<LookupProductPage | null>(null);
   let error = $state('');
   let missing = $state(false);
 
@@ -28,18 +17,13 @@
     missing = false;
     product = null;
     try {
-      const res = await fetch(`/api/lookup/${encodeURIComponent(id)}`);
-      if (res.status === 404) {
+      product = await lookupProduct(id);
+    } catch (err) {
+      if (isHttpError(err) && err.status === 404) {
         missing = true;
         return;
       }
-      if (!res.ok) {
-        error = 'Nie udało się wczytać produktu.';
-        return;
-      }
-      product = (await res.json()) as ProductPage;
-    } catch {
-      error = 'API jest niedostępne.';
+      error = isHttpError(err) && err.status !== 503 ? 'Nie udało się wczytać produktu.' : 'API jest niedostępne.';
     }
   }
 

@@ -1,5 +1,7 @@
-import { apiGet } from '$lib/admin/client';
+import { queryParams, queryValue } from '$lib/common/http';
+import { getProduct } from '$lib/api/admin/products';
+
 export const load = async ({ params, url }) => {
-  const body = await apiGet<Record<string, unknown>>(`/api/admin/products/${params.id}`);
-  return { ...body, error: url.searchParams.get('error') ?? '' };
+  const body = await getProduct(params.id);
+  return { ...body, error: queryValue(queryParams(url), 'error') };
 };

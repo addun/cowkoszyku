@@ -2,6 +2,7 @@
   import * as Alert from '$lib/components/ui/alert/index.js';
   import { Button } from '$lib/components/ui/button/index.js';
   import * as Empty from '$lib/components/ui/empty/index.js';
+  import { receiptPreviewPath } from '$lib/api/admin/receipts';
   import { formatBoughtOn, formatMoneyAmount, formatQty } from '$lib/format';
   import ProductTile from '$lib/ProductTile.svelte';
   import { resourceView, arr, num, obj, text } from '$lib/admin/view';
@@ -30,7 +31,7 @@
 
 <div class={receipt.imagePath ? 'grid items-start gap-6 lg:grid-cols-[16rem_1fr]' : 'flex flex-col gap-6'}>
   {#if receipt.imagePath}
-    <img class="w-full rounded-xl border" src="/api/admin/receipts/{receipt.id}/preview" alt="Uploaded bill" />
+    <img class="w-full rounded-xl border" src={receiptPreviewPath(text(receipt.id))} alt="Uploaded bill" />
   {/if}
 
   <div class="flex flex-col gap-4">

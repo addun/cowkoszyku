@@ -1,7 +1,9 @@
 <script lang="ts">
   import { Button } from '$lib/components/ui/button/index.js';
   import { Input } from '$lib/components/ui/input/index.js';
-  import type { AdminStoreResponse, AdminStoresResponse } from '@cowkoszyku/contract/admin/locations';
+  import { isHttpError } from '@sveltejs/kit';
+  import { listStores } from '$lib/api/admin/stores';
+  import type { AdminStoreResponse } from '@cowkoszyku/contract/admin/locations';
 
   const LIMIT = 20;
 
@@ -45,26 +47,16 @@
     loading = true;
     error = '';
     try {
-      const params = new URLSearchParams({
-        q: query,
-        offset: String(nextOffset),
-        limit: String(LIMIT),
-      });
-      const res = await fetch(`/api/admin/stores?${params}`);
-      if (token !== request) return;
-      if (!res.ok) {
-        error = 'Could not load stores.';
-        return;
-      }
-      const body = (await res.json()) as AdminStoresResponse;
+      const body = await listStores({ q: query, offset: nextOffset, limit: LIMIT });
       if (token !== request) return;
       const skip = String(exclude);
       const incoming = skip ? body.stores.filter((store) => String(store.id) !== skip) : body.stores;
       rows = reset ? incoming : [...rows, ...incoming];
       offset = nextOffset + body.stores.length;
       more = body.stores.length === LIMIT;
-    } catch {
-      if (token === request) error = 'API is unavailable.';
+    } catch (err) {
+      if (token !== request) return;
+      error = isHttpError(err) && err.status !== 503 ? 'Could not load stores.' : 'API is unavailable.';
     } finally {
       if (token === request) loading = false;
     }

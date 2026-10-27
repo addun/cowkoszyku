@@ -14,6 +14,7 @@ export const ProductRefRequest = z.object({
   product: z.coerce.number().int().nonnegative().default(0),
   error: z.string().trim().default(''),
 });
+export type ProductRefRequest = z.input<typeof ProductRefRequest>;
 
 export const AliasesListRequest = z.object({
   product: z.coerce.number().int().nonnegative().default(0),
@@ -21,6 +22,7 @@ export const AliasesListRequest = z.object({
   offset: z.coerce.number().int().nonnegative().default(0),
   limit: z.coerce.number().int().positive().max(ALIAS_PAGE_MAX).default(ALIAS_PAGE_SIZE),
 });
+export type AliasesListRequest = z.input<typeof AliasesListRequest>;
 
 export const AliasRequest = z.object({
   product_id: z.number().int().positive('Choose a product.'),
@@ -32,3 +34,4 @@ export const AliasRequest = z.object({
     .transform(stripAliasWhitespace)
     .pipe(z.string().min(1, 'Alias is required.')),
 });
+export type AliasRequest = z.input<typeof AliasRequest>;

@@ -30,10 +30,12 @@ export const ProductRequest = z.object({
 export const UnitIdRequest = z.object({
   unit_id: z.number().int().positive('Choose one of the extra units on this product.'),
 });
+export type UnitIdRequest = z.input<typeof UnitIdRequest>;
 
 export const MergeRequest = z.object({
   into_id: z.number().int().positive('Choose a product.'),
 });
+export type MergeRequest = z.input<typeof MergeRequest>;
 
 export const PurchaseRequest = z.object({
   store_id: z.number().int(),
@@ -42,3 +44,4 @@ export const PurchaseRequest = z.object({
   amount: z.string().trim(),
   quantity: z.string().trim(),
 });
+export type PurchaseRequest = z.input<typeof PurchaseRequest>;

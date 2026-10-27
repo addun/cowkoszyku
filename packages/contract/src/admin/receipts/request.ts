@@ -15,10 +15,13 @@ export const ReceiptsListRequest = z.object({
   offset: z.coerce.number().int().nonnegative().default(0),
   limit: z.coerce.number().int().positive().max(RECEIPT_PAGE_MAX).default(RECEIPT_PAGE_SIZE),
 });
+export type ReceiptsListRequest = z.input<typeof ReceiptsListRequest>;
 
 export const ReceiptVisitRequest = z.object({
   bought_on: z.string().trim(),
   store_id: z.number().int(),
 });
+export type ReceiptVisitRequest = z.input<typeof ReceiptVisitRequest>;
 
 export const ReceiptFormRequest = z.record(z.string(), z.string());
+export type ReceiptFormRequest = z.input<typeof ReceiptFormRequest>;

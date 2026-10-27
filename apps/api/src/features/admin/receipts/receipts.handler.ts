@@ -39,7 +39,7 @@ import {
 import { ImagesService } from '../../../web/images.service.js';
 import { ReceiptImagesService } from '../../../web/receipt-images.js';
 import {
-  type ReceiptVisitRequest,
+  ReceiptVisitRequest,
   ReceiptsListRequest,
 } from '@cowkoszyku/contract/admin/receipts';
 

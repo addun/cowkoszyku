@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { isHttpError } from '@sveltejs/kit';
+  import { lookupProducts } from '$lib/api/public/lookup';
   import SearchIcon from '@lucide/svelte/icons/search';
   import * as Alert from '$lib/components/ui/alert/index.js';
   import * as Empty from '$lib/components/ui/empty/index.js';
@@ -20,18 +22,16 @@
   async function load(q: string) {
     const id = ++request;
     try {
-      const res = await fetch(`/api/lookup.json?q=${encodeURIComponent(q)}`);
+      const body = await lookupProducts(q);
       if (id !== request) return;
-      if (!res.ok) {
-        search = { products: [], error: 'Nie udało się wyszukać produktów.' };
-        return;
-      }
-      const body = (await res.json()) as { products: ProductTileData[] };
       search = { products: body.products, error: '' };
       active = -1;
-    } catch {
+    } catch (err) {
       if (id !== request) return;
-      search = { products: [], error: 'API jest niedostępne.' };
+      search = {
+        products: [],
+        error: isHttpError(err) && err.status !== 503 ? 'Nie udało się wyszukać produktów.' : 'API jest niedostępne.',
+      };
     }
   }
 

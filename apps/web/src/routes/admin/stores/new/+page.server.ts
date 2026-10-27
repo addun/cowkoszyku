@@ -1,18 +1,20 @@
 import { redirect } from '@sveltejs/kit';
-import { apiGet, apiSend, formCoord, formInt, formJson, formText, rejected } from '$lib/admin/client';
+import { formCoord, formInt, formJson, formText, rejected } from '$lib/admin/client';
+import type { StoreRequest } from '@cowkoszyku/contract/admin/locations';
+import { createStore, getNewStore } from '$lib/api/admin/stores';
 
-export const load = async ({ url }) => apiGet('/api/admin/stores/new' + url.search);
+export const load = async ({ url }) => getNewStore(url.search);
 
 export const actions = {
   default: async ({ request }) => {
     const form = formJson(await request.formData());
-    const result = await apiSend<{ id: number; next?: string }>('POST', '/api/admin/stores', { json: storeJson(form) });
+    const result = await createStore(storeJson(form));
     if (!result.ok) return rejected(result.status, result.message, { store: storeDraft(form), next: form.next ?? '' });
     redirect(303, result.data.next || '/admin/stores');
   },
 };
 
-function storeJson(form: Record<string, unknown>) {
+function storeJson(form: Record<string, unknown>): StoreRequest {
   return {
     name: formText(form, 'name'),
     street_name: formText(form, 'street_name'),

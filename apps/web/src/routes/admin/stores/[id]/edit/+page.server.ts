@@ -1,12 +1,14 @@
 import { redirect } from '@sveltejs/kit';
-import { apiGet, apiSend, formCoord, formInt, formJson, formText, rejected } from '$lib/admin/client';
+import { formCoord, formInt, formJson, formText, rejected } from '$lib/admin/client';
+import type { StoreRequest } from '@cowkoszyku/contract/admin/locations';
+import { getStore, updateStore } from '$lib/api/admin/stores';
 
-export const load = async ({ params }) => apiGet(`/api/admin/stores/${params.id}`);
+export const load = async ({ params }) => getStore(params.id);
 
 export const actions = {
   default: async ({ request, params }) => {
     const form = formJson(await request.formData());
-    const result = await apiSend('PATCH', `/api/admin/stores/${params.id}`, { json: storeJson(form) });
+    const result = await updateStore(params.id, storeJson(form));
     if (!result.ok) {
       return rejected(result.status, result.message, {
         store: {
@@ -20,7 +22,7 @@ export const actions = {
   },
 };
 
-function storeJson(form: Record<string, unknown>) {
+function storeJson(form: Record<string, unknown>): StoreRequest {
   return {
     name: formText(form, 'name'),
     street_name: formText(form, 'street_name'),

@@ -1,15 +1,13 @@
 import { redirect } from '@sveltejs/kit';
-import { apiGet, apiSend, formJson, multipart, rejected } from '$lib/admin/client';
+import { formJson, multipart, rejected } from '$lib/admin/client';
+import { createProduct, getNewProduct, getProductEdit, updateProduct } from '$lib/api/admin/products';
 
 async function save(request: Request, productId: number) {
   const form = await request.formData();
   const json = formJson(form);
-  const path = productId ? `/api/admin/products/${productId}` : '/api/admin/products';
-  const result = await apiSend<{ id: number }>(productId ? 'PATCH' : 'POST', path, { form: multipart(form) });
+  const result = productId ? await updateProduct(productId, multipart(form)) : await createProduct(multipart(form));
   if (!result.ok) {
-    const shell = await apiGet<{ product: Record<string, unknown>; units: unknown[]; groups: { id: number }[] }>(
-      productId ? `/api/admin/products/${productId}/edit` : '/api/admin/products/new',
-    );
+    const shell = productId ? await getProductEdit(productId) : await getNewProduct();
     const selected = new Set(list(json.group_id).map((id) => Number(id)));
     const ids = list(json.extra_unit_id);
     const factors = list(json.extra_factor);
@@ -32,5 +30,5 @@ function list(value: unknown): string[] {
   return Array.isArray(value) ? value.map(String) : [String(value)];
 }
 
-export const load = async () => apiGet('/api/admin/products/new');
+export const load = async () => getNewProduct();
 export const actions = { default: async ({ request }) => save(request, 0) };

@@ -6,7 +6,7 @@ import { LocationsRepository } from '#app/store/locations';
 import { ProductsRepository, type Product } from '#app/store/products';
 import { presentAlias, presentChain } from '../../../web/present.js';
 import {
-  type AliasRequest,
+  AliasRequest,
   AliasesListRequest,
 } from '@cowkoszyku/contract/admin/aliases';
 

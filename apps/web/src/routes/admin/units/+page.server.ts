@@ -1,6 +1,7 @@
-import { apiGet } from '$lib/admin/client';
+import { queryParams, queryValue } from '$lib/common/http';
+import { listUnits } from '$lib/api/admin/units';
 
 export const load = async ({ url }) => {
-  const body = await apiGet<{ units: unknown[] }>('/api/admin/units');
-  return { units: body.units, error: url.searchParams.get('error') ?? '' };
+  const body = await listUnits();
+  return { units: body.units, error: queryValue(queryParams(url), 'error') };
 };

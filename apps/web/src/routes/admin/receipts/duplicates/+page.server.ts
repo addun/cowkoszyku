@@ -1,2 +1,3 @@
-import { apiGet } from '$lib/admin/client';
-export const load = async () => apiGet('/api/admin/receipts/duplicates');
+import { listReceiptDuplicates } from '$lib/api/admin/receipts';
+
+export const load = async () => listReceiptDuplicates();

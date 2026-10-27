@@ -5,8 +5,10 @@
   import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
   import * as Empty from '$lib/components/ui/empty/index.js';
   import * as Table from '$lib/components/ui/table/index.js';
+  import { isHttpError } from '@sveltejs/kit';
+  import { listStores } from '$lib/api/admin/stores';
   import { resourceView, arr, countLabel, obj, text } from '$lib/admin/view';
-  import type { AdminStoreResponse, AdminStoresResponse } from '@cowkoszyku/contract/admin/locations';
+  import type { AdminStoreResponse } from '@cowkoszyku/contract/admin/locations';
 
   const LIMIT = 40;
 
@@ -40,23 +42,14 @@
     loading = true;
     moreError = '';
     try {
-      const params = new URLSearchParams({
-        offset: String(offset),
-        limit: String(LIMIT),
-      });
-      const res = await fetch(`/api/admin/stores?${params}`);
-      if (!res.ok) {
-        moreError = 'Could not load stores.';
-        return;
-      }
-      const body = (await res.json()) as AdminStoresResponse;
+      const body = await listStores({ offset, limit: LIMIT });
       const seen = new Set(stores.map((store) => text(obj(store).id)));
       const next = body.stores.filter((store) => !seen.has(String(store.id)));
       more = [...more, ...next];
       moreLoaded = true;
       moreFull = body.stores.length === LIMIT;
-    } catch {
-      moreError = 'API is unavailable.';
+    } catch (err) {
+      moreError = isHttpError(err) && err.status !== 503 ? 'Could not load stores.' : 'API is unavailable.';
     } finally {
       loading = false;
     }
