@@ -485,6 +485,22 @@ function runStoreSmoke(): void {
     if (repos.products.getProduct(milk.id).ean !== '5900000000002') throw new Error('update ean');
     repos.products.applyImportedEan(milk.id, '');
     if (repos.products.getProduct(milk.id).ean !== '5900000000002') throw new Error('empty ean must not clear');
+    const milkAgain = repos.products.createProduct('Mleko UHT', kg.id, null, [], '5900000000002');
+    const milkSpaced = repos.products.createProduct('Mleko Spacja', kg.id, null, [], '590 0000 000002');
+    repos.products.createProduct('Ocet', kg.id, null, [], '5900000000099');
+    repos.products.createProduct('Pusty EAN', kg.id, null);
+    repos.products.createProduct('Tez pusty', kg.id, null, [], '   ');
+    const eanDups = repos.products.listDuplicateProducts();
+    const milkGroup = eanDups.find((group) => group.ean === '5900000000002');
+    if (!milkGroup || milkGroup.products.length !== 3) throw new Error('ean dup');
+    if (
+      !milkGroup.products.some((product) => product.id === milk.id) ||
+      !milkGroup.products.some((product) => product.id === milkAgain.id) ||
+      !milkGroup.products.some((product) => product.id === milkSpaced.id)
+    ) {
+      throw new Error('ean dup members');
+    }
+    if (eanDups.some((group) => group.ean === '' || group.ean === '5900000000099')) throw new Error('non-dup ean');
 
     const salt = repos.products.createProduct('Sol', kg.id, null);
     const keepShop = repos.locations.createStore('Keep Shop', 'Main', '1', '', '', 'KeepCity', '', chain.id);

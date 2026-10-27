@@ -13,6 +13,24 @@ export const AdminProductResponse = z.object({
 });
 export type AdminProductResponse = z.infer<typeof AdminProductResponse>;
 
+export const AdminProductDuplicateItemResponse = z.object({
+  id: z.number().int(),
+  name: z.string(),
+  unitName: z.string(),
+  image: z.string(),
+});
+
+export const AdminProductDuplicatesResponse = z.object({
+  groups: z.array(
+    z.object({
+      ean: z.string(),
+      count: z.number().int(),
+      products: z.array(AdminProductDuplicateItemResponse),
+    }),
+  ),
+});
+export type AdminProductDuplicatesResponse = z.infer<typeof AdminProductDuplicatesResponse>;
+
 export const AdminProductsResponse = z.object({
   query: z.string(),
   offset: z.number().int().nonnegative(),

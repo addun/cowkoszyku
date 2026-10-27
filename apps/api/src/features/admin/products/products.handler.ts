@@ -10,7 +10,8 @@ import { productAliases, productUnitConversions, products, purchases, units } fr
 import { fromGrosze } from '../../../domain/money.js';
 import { priceNote, quotesByProduct, type QuotedPrice } from '../../../domain/price-stats.js';
 import { KIND_PURCHASE, type Purchase, type PurchaseKind } from '../../../store/purchases/purchases.models.js';
-import { GetAdminProductsRequest } from '@cowkoszyku/contract/admin/products';
+import type { GetAdminProductsRequest } from '@cowkoszyku/contract/admin/products';
+import { ProductsRepository, type ProductDuplicateGroup } from '#app/store/products';
 import { DATABASE, type Database } from './database.js';
 
 const laterPurchase = alias(purchases, 'later_purchase');
@@ -20,7 +21,14 @@ export class AdminProductsHandler {
   constructor(
     @Inject(DATABASE) private readonly database: Database,
     private readonly config: ConfigService,
+    private readonly productsRepo: ProductsRepository,
   ) { }
+
+  duplicates() {
+    return {
+      groups: this.productsRepo.listDuplicateProducts().map(presentDuplicateGroup),
+    };
+  }
 
   list(query: z.infer<typeof GetAdminProductsRequest>) {
     const whereStatement = this.getWhereStatement(query.q, query.unit);
@@ -176,4 +184,20 @@ export class AdminProductsHandler {
       ),
     );
   }
+}
+
+function presentDuplicateGroup(group: ProductDuplicateGroup) {
+  return {
+    ean: group.ean,
+    count: group.products.length,
+    products: group.products.map((product) => {
+      const imagePath = product.imagePath?.trim() ?? '';
+      return {
+        id: product.id,
+        name: product.name,
+        unitName: product.unitName,
+        image: imagePath ? `/images/${imagePath}` : '',
+      };
+    }),
+  };
 }
