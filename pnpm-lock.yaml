@@ -101,6 +101,9 @@ importers:
       '@cowkoszyku/contract':
         specifier: workspace:*
         version: link:../../packages/contract
+      qs:
+        specifier: ^6.16.1
+        version: 6.16.1
     devDependencies:
       '@fontsource-variable/inter':
         specifier: ^5.3.0
