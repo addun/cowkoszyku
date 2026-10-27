@@ -1,7 +1,8 @@
+import { formJson, rejected } from '$lib/admin/client';
+import { getProductMerge } from '$lib/api/admin/products';
 import { redirect } from '@sveltejs/kit';
-import { apiGet, formJson, rejected } from '$lib/admin/client';
 
-export const load = async ({ params }) => apiGet(`/api/admin/products/${params.id}/merge`);
+export const load = async ({ params }) => getProductMerge(params.id);
 
 export const actions = {
   default: async ({ request, params }) => {

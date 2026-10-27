@@ -1,12 +1,15 @@
 <script lang="ts">
   import { page } from '$app/state';
+  import { queryParams, queryValue } from '$lib/common/http';
   import Notice from '$lib/admin/Notice.svelte';
   import { Button } from '$lib/components/ui/button/index.js';
   import * as Empty from '$lib/components/ui/empty/index.js';
   import { Input } from '$lib/components/ui/input/index.js';
   import * as Table from '$lib/components/ui/table/index.js';
+  import { isHttpError } from '@sveltejs/kit';
+  import { listAliases } from '$lib/api/admin/aliases';
   import { resourceView, arr, obj, text } from '$lib/admin/view';
-  import type { AdminAliasResponse, AdminAliasesResponse } from '@cowkoszyku/contract/admin/aliases';
+  import type { AdminAliasResponse } from '@cowkoszyku/contract/admin/aliases';
 
   const LIMIT = 40;
 
@@ -20,8 +23,9 @@
   const view = $derived(resourceView(props));
   const filter = $derived(view.filter ? obj(view.filter) : null);
   const productQuery = $derived(text(view.productQuery));
-  const q = $derived(page.url.searchParams.get('q') ?? '');
-  const product = $derived(page.url.searchParams.get('product') ?? '');
+  const query = $derived(queryParams(page.url));
+  const q = $derived(queryValue(query, 'q'));
+  const product = $derived(queryValue(query, 'product'));
   const listKey = $derived(`${q}\n${product}`);
 
   let more = $state<AdminAliasResponse[]>([]);
@@ -47,28 +51,16 @@
     loading = true;
     moreError = '';
     try {
-      const params = new URLSearchParams({
-        q: query,
-        offset: String(offset),
-        limit: String(LIMIT),
-      });
-      if (productId) params.set('product', productId);
-      const res = await fetch(`/api/admin/aliases?${params}`);
-      if (key !== listKey) return;
-      if (!res.ok) {
-        moreError = 'Could not load aliases.';
-        return;
-      }
-      const body = (await res.json()) as AdminAliasesResponse;
+      const body = await listAliases({ q: query, offset, limit: LIMIT, product: productId });
       if (key !== listKey) return;
       const seen = new Set((moreQuery === key ? [...arr(view.aliases), ...more] : arr(view.aliases)).map((alias) => text(obj(alias).id)));
       const next = body.aliases.filter((alias) => !seen.has(String(alias.id)));
       more = moreQuery === key ? [...more, ...next] : next;
       moreQuery = key;
       moreFull = body.aliases.length === LIMIT;
-    } catch {
+    } catch (err) {
       if (key !== listKey) return;
-      moreError = 'API is unavailable.';
+      moreError = isHttpError(err) && err.status !== 503 ? 'Could not load aliases.' : 'API is unavailable.';
     } finally {
       loading = false;
     }

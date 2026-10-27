@@ -1,7 +1,7 @@
-import { redirect } from '@sveltejs/kit';
-import { apiGet } from '$lib/admin/client';
+import { queryParams, queryValue } from '$lib/common/http';
+import { listRetailChains } from '$lib/api/admin/retail-chains';
 
 export const load = async ({ url }) => {
-  const body = await apiGet<{ retailChains: unknown[] }>('/api/admin/retail-chains');
-  return { retailChains: body.retailChains, error: url.searchParams.get('error') ?? '' };
+  const body = await listRetailChains();
+  return { retailChains: body.retailChains, error: queryValue(queryParams(url), 'error') };
 };

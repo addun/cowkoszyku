@@ -1,7 +1,9 @@
 <script lang="ts">
   import { Button } from '$lib/components/ui/button/index.js';
   import { Input } from '$lib/components/ui/input/index.js';
-  import type { AdminProductResponse, AdminProductsResponse } from '@cowkoszyku/contract/admin/products';
+  import { isHttpError } from '@sveltejs/kit';
+  import { listProducts } from '$lib/api/admin/products';
+  import type { AdminProductResponse } from '@cowkoszyku/contract/admin/products';
 
   const LIMIT = 20;
 
@@ -77,26 +79,16 @@
     loading = true;
     error = '';
     try {
-      const params = new URLSearchParams({
-        q: query,
-        offset: String(nextOffset),
-        limit: String(LIMIT),
-      });
-      const res = await fetch(`/api/admin/products.json?${params}`);
-      if (token !== request) return;
-      if (!res.ok) {
-        error = 'Could not load products.';
-        return;
-      }
-      const body = (await res.json()) as AdminProductsResponse;
+      const body = await listProducts({ q: query, offset: nextOffset, limit: LIMIT });
       if (token !== request) return;
       const skip = String(exclude);
       const incoming = skip ? body.products.filter((product) => String(product.id) !== skip) : body.products;
       rows = reset ? incoming : [...rows, ...incoming];
       offset = nextOffset + body.products.length;
       more = body.products.length === LIMIT;
-    } catch {
-      if (token === request) error = 'API is unavailable.';
+    } catch (err) {
+      if (token !== request) return;
+      error = isHttpError(err) && err.status !== 503 ? 'Could not load products.' : 'API is unavailable.';
     } finally {
       if (token === request) loading = false;
     }

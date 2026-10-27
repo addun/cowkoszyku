@@ -1,22 +1,26 @@
 <script lang="ts">
   import { page } from '$app/state';
+  import { queryParams, queryValue } from '$lib/common/http';
   import * as Alert from '$lib/components/ui/alert/index.js';
   import { Button } from '$lib/components/ui/button/index.js';
   import * as Empty from '$lib/components/ui/empty/index.js';
   import { Input } from '$lib/components/ui/input/index.js';
+  import { isHttpError } from '@sveltejs/kit';
+  import { listProducts } from '$lib/api/admin/products';
   import { formatPrice } from '$lib/format';
   import ProductTile from '$lib/ProductTile.svelte';
-  import type { AdminProductResponse, AdminProductsResponse } from '@cowkoszyku/contract/admin/products';
+  import type { AdminProductResponse } from '@cowkoszyku/contract/admin/products';
 
   const LIMIT = 40;
 
   let { data } = $props();
 
-  const q = $derived(page.url.searchParams.get('q') ?? '');
-  const unit = $derived(page.url.searchParams.get('unit') ?? '');
+  const query = $derived(queryParams(page.url));
+  const q = $derived(queryValue(query, 'q'));
+  const unit = $derived(queryValue(query, 'unit'));
   const listKey = $derived(`${q}\n${unit}`);
-  const imported = $derived(Number.parseInt(page.url.searchParams.get('imported') ?? '', 10) || 0);
-  const error = $derived(page.url.searchParams.get('error') ?? '');
+  const imported = $derived(Number.parseInt(queryValue(query, 'imported'), 10) || 0);
+  const error = $derived(queryValue(query, 'error'));
 
   let more = $state<AdminProductResponse[]>([]);
   let moreQuery = $state<string | null>(null);
@@ -42,28 +46,16 @@
     loading = true;
     moreError = '';
     try {
-      const params = new URLSearchParams({
-        q: query,
-        offset: String(offset),
-        limit: String(LIMIT),
-      });
-      if (unitId) params.set('unit', unitId);
-      const res = await fetch(`/api/admin/products.json?${params}`);
-      if (key !== listKey) return;
-      if (!res.ok) {
-        moreError = 'Could not load products.';
-        return;
-      }
-      const body = (await res.json()) as AdminProductsResponse;
+      const body = await listProducts({ q: query, offset, limit: LIMIT, unit: unitId });
       if (key !== listKey) return;
       const seen = new Set((moreQuery === key ? [...data.products, ...more] : data.products).map((product) => product.id));
       const next = body.products.filter((product) => !seen.has(product.id));
       more = moreQuery === key ? [...more, ...next] : next;
       moreQuery = key;
       moreFull = body.products.length === LIMIT;
-    } catch {
+    } catch (err) {
       if (key !== listKey) return;
-      moreError = 'API is unavailable.';
+      moreError = isHttpError(err) && err.status !== 503 ? 'Could not load products.' : 'API is unavailable.';
     } finally {
       loading = false;
     }

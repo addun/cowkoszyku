@@ -1,5 +1,8 @@
 <script lang="ts">
+  import { isHttpError } from '@sveltejs/kit';
   import { page } from '$app/state';
+  import { queryParams, queryValue } from '$lib/common/http';
+  import { listReceipts } from '$lib/api/admin/receipts';
   import Notice from '$lib/admin/Notice.svelte';
   import { Button } from '$lib/components/ui/button/index.js';
   import * as Empty from '$lib/components/ui/empty/index.js';
@@ -16,7 +19,7 @@
   });
 
   const view = $derived(resourceView(props));
-  const store = $derived(page.url.searchParams.get('store') ?? '');
+  const store = $derived(queryValue(queryParams(page.url), 'store'));
   const listKey = $derived(store);
 
   let more = $state<AdminReceiptsResponse['receipts']>([]);
@@ -57,27 +60,16 @@
     loading = true;
     moreError = '';
     try {
-      const params = new URLSearchParams({
-        offset: String(offset),
-        limit: String(LIMIT),
-      });
-      if (storeId) params.set('store', storeId);
-      const res = await fetch(`/api/admin/receipts?${params}`);
-      if (key !== listKey) return;
-      if (!res.ok) {
-        moreError = 'Could not load receipts.';
-        return;
-      }
-      const body = (await res.json()) as AdminReceiptsResponse;
+      const body = await listReceipts({ store: storeId, offset, limit: LIMIT });
       if (key !== listKey) return;
       const seen = new Set((moreQuery === key ? [...arr(view.receipts), ...more] : arr(view.receipts)).map((receipt) => text(obj(receipt).id)));
       const next = body.receipts.filter((receipt) => !seen.has(String(receipt.id)));
       more = moreQuery === key ? [...more, ...next] : next;
       moreQuery = key;
       moreFull = body.receipts.length === LIMIT;
-    } catch {
+    } catch (err) {
       if (key !== listKey) return;
-      moreError = 'API is unavailable.';
+      moreError = isHttpError(err) && err.status !== 503 ? 'Could not load receipts.' : 'API is unavailable.';
     } finally {
       loading = false;
     }

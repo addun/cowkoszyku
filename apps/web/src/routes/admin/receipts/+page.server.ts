@@ -1,12 +1,11 @@
-import { apiGet } from '$lib/admin/client';
-import type { AdminReceiptsResponse } from '@cowkoszyku/contract/admin/receipts';
+import { queryParams, queryValue } from '$lib/common/http';
+import { listReceipts } from '$lib/api/admin/receipts';
 
 const LIMIT = 40;
 
 export const load = async ({ url }) => {
-  const store = url.searchParams.get('store') ?? '';
-  const params = new URLSearchParams({ offset: '0', limit: String(LIMIT) });
-  if (store) params.set('store', store);
-  const body = await apiGet<AdminReceiptsResponse>(`/api/admin/receipts?${params}`);
-  return { ...body, error: url.searchParams.get('error') ?? '' };
+  const query = queryParams(url);
+  const store = queryValue(query, 'store');
+  const body = await listReceipts({ store, offset: 0, limit: LIMIT });
+  return { ...body, error: queryValue(query, 'error') };
 };

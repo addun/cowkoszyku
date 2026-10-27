@@ -1,19 +1,23 @@
 import { redirect } from '@sveltejs/kit';
-import { apiGet, apiSend, formInt, formJson, formText, rejected } from '$lib/admin/client';
+import { formInt, formJson, formText, rejected } from '$lib/admin/client';
+import { queryParams, queryValue } from '$lib/common/http';
+import { createAlias, getNewAlias } from '$lib/api/admin/aliases';
 
 export const load = async ({ url }) => {
-  const product = url.searchParams.get('product') ?? '';
-  return apiGet('/api/admin/aliases/new' + (product ? '?product=' + encodeURIComponent(product) : ''));
+  const query = queryParams(url);
+  return getNewAlias({ product: queryValue(query, 'product'), error: queryValue(query, 'error') });
 };
 
 export const actions = {
   default: async ({ request, url }) => {
     const form = formJson(await request.formData());
-    const result = await apiSend('POST', '/api/admin/aliases', {
-      json: { product_id: formInt(form, 'product_id'), scope: formText(form, 'scope'), alias: formText(form, 'alias') },
+    const result = await createAlias({
+      product_id: formInt(form, 'product_id'),
+      scope: formText(form, 'scope'),
+      alias: formText(form, 'alias'),
     });
     if (!result.ok) return rejected(result.status, result.message, aliasDraft(form));
-    const from = Number(form.from_product) || Number(url.searchParams.get('product')) || 0;
+    const from = Number(form.from_product) || Number(queryValue(queryParams(url), 'product')) || 0;
     redirect(303, from > 0 ? `/admin/aliases?product=${from}` : '/admin/aliases');
   },
 };

@@ -5,3 +5,4 @@ export const UpdateAdminSettingsRequest = z.object({
   piece_unit_id: z.number().int().positive('Choose a unit from the list.'),
   weight_unit_id: z.number().int().positive('Choose a unit from the list.'),
 });
+export type UpdateAdminSettingsRequest = z.input<typeof UpdateAdminSettingsRequest>;

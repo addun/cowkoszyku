@@ -3,7 +3,7 @@ import { Decimal } from 'decimal.js';
 import type { z } from 'zod';
 import { parseDecimal } from '../../../domain/format.js';
 import { UnitsRepository } from '#app/store/units';
-import { type UnitRequest } from '@cowkoszyku/contract/admin/units';
+import { UnitRequest } from '@cowkoszyku/contract/admin/units';
 
 @Injectable()
 export class AdminUnitsHandler {

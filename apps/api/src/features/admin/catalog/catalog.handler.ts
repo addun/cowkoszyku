@@ -12,10 +12,10 @@ import { UnitsRepository } from '#app/store/units';
 import { ImagesService } from '../../../web/images.service.js';
 import { presentProduct, presentPurchase, presentStore, storesByID } from '../../../web/present.js';
 import {
-  type MergeRequest,
+  MergeRequest,
   type ProductRequest,
-  type PurchaseRequest,
-  type UnitIdRequest,
+  PurchaseRequest,
+  UnitIdRequest,
 } from '@cowkoszyku/contract/admin/catalog';
 
 @Injectable()

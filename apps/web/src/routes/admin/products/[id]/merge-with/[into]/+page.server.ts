@@ -1,11 +1,12 @@
 import { redirect } from '@sveltejs/kit';
-import { apiGet, apiSend, rejected } from '$lib/admin/client';
+import { rejected } from '$lib/admin/client';
+import { getProductMergePlan, mergeProduct } from '$lib/api/admin/products';
 
-export const load = async ({ params }) => apiGet(`/api/admin/products/${params.id}/merge/${params.into}`);
+export const load = async ({ params }) => getProductMergePlan(params.id, params.into);
 
 export const actions = {
   default: async ({ params }) => {
-    const result = await apiSend<{ id: number }>('POST', `/api/admin/products/${params.id}/merge`, { json: { into_id: Number(params.into) } });
+    const result = await mergeProduct(params.id, { into_id: Number(params.into) });
     if (!result.ok) return rejected(result.status, result.message);
     redirect(303, `/admin/products/${result.data.id}`);
   },

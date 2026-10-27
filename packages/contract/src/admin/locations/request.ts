@@ -6,12 +6,18 @@ const queryText = z.preprocess((value) => {
   return String(raw);
 }, z.string().trim());
 
-const coord = (label: string, min: number, max: number) =>
-  z
-    .number({ error: `${label} must be a number between ${min} and ${max}.` })
-    .min(min, `${label} must be a number between ${min} and ${max}.`)
-    .max(max, `${label} must be a number between ${min} and ${max}.`)
-    .nullable();
+const coord = (label: string, min: number, max: number) => {
+  const message = `${label} must be a number between ${min} and ${max}.`;
+  return z.union([z.number(), z.string(), z.null()]).transform((value, ctx) => {
+    if (value == null || value === '') return null;
+    const n = typeof value === 'number' ? value : Number(value.trim().replace(',', '.'));
+    if (!Number.isFinite(n) || n < min || n > max) {
+      ctx.addIssue({ code: 'custom', message });
+      return z.NEVER;
+    }
+    return n;
+  });
+};
 
 const STORE_PAGE_SIZE = 40;
 const STORE_PAGE_MAX = 100;
@@ -24,6 +30,7 @@ export const StoresListRequest = z.object({
   offset: z.coerce.number().int().nonnegative().default(0),
   limit: z.coerce.number().int().positive().max(STORE_PAGE_MAX).default(STORE_PAGE_SIZE),
 });
+export type StoresListRequest = z.input<typeof StoresListRequest>;
 
 export const NewStoreRequest = z
   .object({
@@ -57,6 +64,7 @@ export const RetailChainRequest = z.object({
     .min(1, 'Tax ID is required.')
     .refine((s) => /[\p{L}\p{N}]/u.test(s), 'Tax ID is required.'),
 });
+export type RetailChainRequest = z.input<typeof RetailChainRequest>;
 
 export const StoreRequest = z.object({
   name: z.string().trim().min(1, 'Name is required.'),
@@ -71,7 +79,9 @@ export const StoreRequest = z.object({
   next: z.string().trim(),
   retail_chain_id: z.number().int(),
 });
+export type StoreRequest = z.input<typeof StoreRequest>;
 
 export const StoreMergeRequest = z.object({
   into_id: z.number().int().positive('Choose a store.'),
 });
+export type StoreMergeRequest = z.input<typeof StoreMergeRequest>;

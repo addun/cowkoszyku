@@ -14,3 +14,4 @@ export const GetAdminProductsRequest = z.object({
   limit: z.coerce.number().int().positive().max(ADMIN_PAGE_MAX).default(ADMIN_PAGE_SIZE),
   unit: optionalUnitId,
 });
+export type GetAdminProductsRequest = z.input<typeof GetAdminProductsRequest>;

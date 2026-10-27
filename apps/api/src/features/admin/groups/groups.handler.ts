@@ -6,7 +6,7 @@ import { compareUnitLabel, formatMoneyPerUnit, priceAtCompare } from '../../../d
 import { priceNote } from '../../../domain/price-stats.js';
 import { ComparisonGroupsRepository } from '#app/store/comparison-groups';
 import { UnitsRepository } from '#app/store/units';
-import { type ComparisonGroupRequest } from '@cowkoszyku/contract/admin/groups';
+import { ComparisonGroupRequest } from '@cowkoszyku/contract/admin/groups';
 
 @Injectable()
 export class AdminGroupsHandler {

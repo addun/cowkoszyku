@@ -4,10 +4,10 @@ import { LocationsRepository, type Store } from '#app/store/locations';
 import { presentChain, presentStore } from '../../../web/present.js';
 import {
   type NewStoreRequest,
-  type RetailChainRequest,
+  RetailChainRequest,
   StoresListRequest,
-  type StoreMergeRequest,
-  type StoreRequest,
+  StoreMergeRequest,
+  StoreRequest,
 } from '@cowkoszyku/contract/admin/locations';
 
 @Injectable()

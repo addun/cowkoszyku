@@ -1,18 +1,20 @@
 import { redirect } from '@sveltejs/kit';
-import { apiGet, apiSend, formInt, formJson, formText, rejected } from '$lib/admin/client';
+import { formInt, formJson, formText, rejected } from '$lib/admin/client';
+import type { PurchaseRequest } from '@cowkoszyku/contract/admin/catalog';
+import { createPurchase, getNewPurchase } from '$lib/api/admin/purchases';
 
-export const load = async ({ params }) => apiGet(`/api/admin/products/${params.id}/purchases/new`);
+export const load = async ({ params }) => getNewPurchase(params.id);
 
 export const actions = {
   default: async ({ request, params }) => {
     const form = formJson(await request.formData());
-    const result = await apiSend<{ productId: number }>('POST', `/api/admin/products/${params.id}/purchases`, { json: purchaseJson(form) });
+    const result = await createPurchase(params.id, purchaseJson(form));
     if (!result.ok) return rejected(result.status, result.message, { purchase: purchaseDraft(form) });
     redirect(303, `/admin/products/${params.id}`);
   },
 };
 
-function purchaseJson(form: Record<string, unknown>) {
+function purchaseJson(form: Record<string, unknown>): PurchaseRequest {
   return {
     store_id: formInt(form, 'store_id'),
     kind: formText(form, 'kind'),

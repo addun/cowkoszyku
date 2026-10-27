@@ -1,8 +1,9 @@
 import { redirect } from '@sveltejs/kit';
-import { apiGet, apiSend, rejected } from '$lib/admin/client';
+import { rejected } from '$lib/admin/client';
+import { deleteStore, getStore } from '$lib/api/admin/stores';
 
 export const load = async ({ params }) => {
-  const body = await apiGet<{ store: { name: string; purchaseCount: number } }>(`/api/admin/stores/${params.id}`);
+  const body = await getStore(params.id);
   if (body.store.purchaseCount > 0) {
     redirect(303, '/admin/stores?error=' + encodeURIComponent(`Cannot delete “${body.store.name}” while a purchase still uses it.`));
   }
@@ -11,7 +12,7 @@ export const load = async ({ params }) => {
 
 export const actions = {
   default: async ({ params }) => {
-    const result = await apiSend('DELETE', `/api/admin/stores/${params.id}`);
+    const result = await deleteStore(params.id);
     if (!result.ok) {
       if (result.status === 409) redirect(303, '/admin/stores?error=' + encodeURIComponent(result.message));
       return rejected(result.status, result.message);

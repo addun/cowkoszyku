@@ -1,10 +1,13 @@
 <script lang="ts">
   import Notice from '$lib/admin/Notice.svelte';
+  import { isHttpError } from '@sveltejs/kit';
+  import { addComparisonGroupProducts, removeComparisonGroupProduct } from '$lib/api/admin/groups';
+  import { listProducts } from '$lib/api/admin/products';
   import { Button } from '$lib/components/ui/button/index.js';
   import { Input } from '$lib/components/ui/input/index.js';
   import { formatPrice } from '$lib/format';
   import ProductTile from '$lib/ProductTile.svelte';
-  import type { AdminProductResponse, AdminProductsResponse } from '@cowkoszyku/contract/admin/products';
+  import type { AdminProductResponse } from '@cowkoszyku/contract/admin/products';
 
   const LIMIT = 40;
 
@@ -57,39 +60,23 @@
     loading = true;
     error = '';
     try {
-      const params = new URLSearchParams({
-        q: query,
-        offset: String(nextOffset),
-        limit: String(LIMIT),
-      });
-      const res = await fetch(`/api/admin/products.json?${params}`);
-      if (token !== request) return;
-      if (!res.ok) {
-        error = 'Could not load products.';
-        return;
-      }
-      const body = (await res.json()) as AdminProductsResponse;
+      const body = await listProducts({ q: query, offset: nextOffset, limit: LIMIT });
       if (token !== request) return;
       const seen = new Set((reset ? [] : rows).map((product) => product.id));
       const incoming = body.products.filter((product) => !seen.has(product.id));
       rows = reset ? incoming : [...rows, ...incoming];
       offset = nextOffset + body.products.length;
       moreFull = body.products.length === LIMIT;
-    } catch {
-      if (token === request) error = 'API is unavailable.';
+    } catch (err) {
+      if (token !== request) return;
+      error = isHttpError(err) && err.status !== 503 ? 'Could not load products.' : 'API is unavailable.';
     } finally {
       if (token === request) loading = false;
     }
   }
 
-  async function failure(res: Response): Promise<string> {
-    try {
-      const body = (await res.json()) as { message?: string };
-      if (body.message) return body.message;
-    } catch {
-      /* ignore */
-    }
-    return 'Could not update the group.';
+  function groupError(message: string): string {
+    return message && message !== 'Request failed.' ? message : 'Could not update the group.';
   }
 
   async function add(product: AdminProductResponse) {
@@ -105,14 +92,10 @@
     pendingId = product.id;
     error = '';
     try {
-      const res = await fetch(`/api/admin/comparison-groups/${data.group.id}/products`, {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ product_id: [product.id] }),
-      });
-      if (!res.ok) {
+      const result = await addComparisonGroupProducts(data.group.id, { product_id: [product.id] });
+      if (!result.ok) {
         members = members.filter((item) => item.id !== product.id);
-        error = await failure(res);
+        error = groupError(result.message);
       }
     } catch {
       members = members.filter((item) => item.id !== product.id);
@@ -128,10 +111,10 @@
     pendingId = member.id;
     error = '';
     try {
-      const res = await fetch(`/api/admin/comparison-groups/${data.group.id}/products/${member.id}`, { method: 'DELETE' });
-      if (!res.ok) {
+      const result = await removeComparisonGroupProduct(data.group.id, member.id);
+      if (!result.ok) {
         members = [...members, member];
-        error = await failure(res);
+        error = groupError(result.message);
       }
     } catch {
       members = [...members, member];
