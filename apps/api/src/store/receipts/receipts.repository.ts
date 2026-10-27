@@ -92,17 +92,22 @@ export class ReceiptsRepository {
     return mapReceipt(row);
   }
 
-  listReceipts(storeId = 0): ReceiptListItem[] {
-    const rows = storeId > 0 ? this.scanReceiptList().filter((row) => row.shopId === storeId) : this.scanReceiptList();
-    return rows.map((row) => ({
-      id: row.id,
-      imagePath: row.imagePath,
-      status: row.status,
-      errorMessage: row.errorMessage,
-      createdAt: row.createdAt,
-      boughtOn: row.boughtOn,
-      shopName: row.shopName,
-    }));
+  listReceipts(storeId = 0, offset = 0, limit = 0): ReceiptListItem[] {
+    const rows = this.scanReceiptList()
+      .filter((row) => storeId <= 0 || row.shopId === storeId)
+      .map((row) => ({
+        id: row.id,
+        imagePath: row.imagePath,
+        status: row.status,
+        errorMessage: row.errorMessage,
+        createdAt: row.createdAt,
+        boughtOn: row.boughtOn,
+        shopName: row.shopName,
+      }))
+      .sort(byPurchaseDateDesc);
+    const start = offset > 0 ? offset : 0;
+    if (!(limit > 0)) return start > 0 ? rows.slice(start) : rows;
+    return rows.slice(start, start + limit);
   }
 
   listDuplicateReceipts(): ReceiptDuplicateGroup[] {
@@ -391,6 +396,17 @@ export class ReceiptsRepository {
       throw err;
     }
   }
+}
+
+function byPurchaseDateDesc(a: ReceiptListItem, b: ReceiptListItem): number {
+  const leftOn = a.boughtOn.trim();
+  const rightOn = b.boughtOn.trim();
+  if (leftOn !== rightOn) {
+    if (leftOn === '') return 1;
+    if (rightOn === '') return -1;
+    return rightOn.localeCompare(leftOn);
+  }
+  return b.id - a.id;
 }
 
 function mapReceipt(row: {

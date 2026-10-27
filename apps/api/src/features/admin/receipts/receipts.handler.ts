@@ -75,7 +75,9 @@ export class AdminReceiptsHandler {
       model: this.settings.getSetting('ocr_model'),
       store: storeId,
       storeName,
-      receipts: this.receipts.listReceipts(storeId).map(presentReceiptListItem),
+      offset: query.offset,
+      limit: query.limit,
+      receipts: this.receipts.listReceipts(storeId, query.offset, query.limit).map(presentReceiptListItem),
     };
   }
 

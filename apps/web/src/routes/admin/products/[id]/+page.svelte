@@ -97,7 +97,7 @@
               </Card.Description>
               <Card.Action class="text-right font-medium whitespace-nowrap tabular-nums">{formatLinePrice(text(row.amount), text(row.quantity), text(product.compareValue), text(product.unitName), symbol)}</Card.Action>
             </Card.Header>
-            <Card.Footer class="justify-between">
+            <Card.Footer class="gap-1">
               {#if row.receiptId}
                 <Button variant="link" class="h-auto px-0" href="/admin/receipts/{row.receiptId}">Receipt {row.receiptId}</Button>
               {:else}

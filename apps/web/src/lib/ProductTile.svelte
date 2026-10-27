@@ -52,10 +52,10 @@
         {/if}
       </span>
     </a>
-    {#if actions}
-      <span class="flex shrink-0 items-center gap-1">
-        {@render actions()}
-      </span>
-    {/if}
   </Card.Content>
+  {#if actions}
+    <Card.Footer class="gap-1">
+      {@render actions()}
+    </Card.Footer>
+  {/if}
 </Card.Root>
