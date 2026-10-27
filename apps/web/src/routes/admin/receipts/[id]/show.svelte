@@ -28,7 +28,7 @@
   </Alert.Root>
 {/if}
 
-<div class="grid items-start gap-6 lg:grid-cols-[16rem_1fr]">
+<div class={receipt.imagePath ? 'grid items-start gap-6 lg:grid-cols-[16rem_1fr]' : 'flex flex-col gap-6'}>
   {#if receipt.imagePath}
     <img class="w-full rounded-xl border" src="/api/admin/receipts/{receipt.id}/preview" alt="Uploaded bill" />
   {/if}

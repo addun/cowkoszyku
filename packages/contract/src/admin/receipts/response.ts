@@ -28,6 +28,8 @@ export const AdminReceiptsResponse = z.object({
   model: z.string(),
   store: z.number().int().nonnegative().default(0),
   storeName: z.string().default(''),
+  offset: z.number().int().nonnegative().default(0),
+  limit: z.number().int().positive().default(40),
   receipts: z.array(AdminReceiptListItemResponse),
 });
 export type AdminReceiptsResponse = z.infer<typeof AdminReceiptsResponse>;
